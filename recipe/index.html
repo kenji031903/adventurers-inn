@@ -13,6 +13,7 @@
 html,body{margin:0;height:100%;background:#3e2614}
 iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
 #help{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);font:13px sans-serif;background:#000a;color:#f3e2bd;padding:6px 12px;border-radius:14px;text-decoration:none;display:none}
+.door{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}.door img{width:62vw;max-width:280px;border-radius:22%;box-shadow:0 10px 30px #000a}.door a{font:700 20px sans-serif;color:#3a2510;background:linear-gradient(#f6dd8f,#c9a24a);padding:14px 48px;border-radius:999px;text-decoration:none;border:2px solid #7a5a20}
 </style>
 </head>
 <body>
@@ -22,8 +23,11 @@ iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
 // iPhone の Safari は、ページの中に Google のページを入れるとログインが通らないので、そのまま移る
 var URL_ = 'https://script.google.com/macros/s/AKfycbyS4dMhCoBIztzJxDtBZBh5l0xIr_M4T0F2RMQtrDFUIt32bgifC4n-nEdmmqphWUyl/exec';
 var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-if (ios) {
+if (ios && (navigator.standalone || matchMedia('(display-mode: standalone)').matches)) {
   location.replace(URL_);
+} else if (ios) {
+  // Safari で開いたとき: ここでホーム画面に追加できるように、すぐには移らない
+  document.body.insertAdjacentHTML('afterbegin', '<div class="door"><img src="icon-512.png" alt=""><a href="' + URL_ + '">ひらく</a></div>');
 } else {
   var f = document.createElement('iframe');
   f.src = URL_; f.title = '魔法のレシピブック'; f.allow = 'fullscreen; autoplay'; f.allowFullscreen = true;
