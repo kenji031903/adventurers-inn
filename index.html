@@ -12,7 +12,10 @@
 html,body{margin:0;height:100%;background:#3e2614}
 iframe{position:fixed;top:env(safe-area-inset-top,0px);right:env(safe-area-inset-right,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);width:calc(100% - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));height:calc(100% - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:0}
 #start{position:fixed;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#3e2614ee;color:#f3e2bd;font:20px sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-#start small{font-size:13px;opacity:.7}
+#start small{font-size:13px;opacity:.75;line-height:1.6;max-width:300px}
+#start .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#start button{font:16px sans-serif;padding:10px 16px;border-radius:12px;border:1px solid #f3e2bd88;background:#f3e2bd;color:#3e2614;cursor:pointer}
+#start button.sub{background:transparent;color:#f3e2bd}
 #start b{font-size:26px;letter-spacing:.08em}
 #fs{position:fixed;left:8px;bottom:8px;z-index:8;width:34px;height:34px;border:0;border-radius:10px;background:#000a;color:#f3e2bd;font:18px sans-serif;display:none;opacity:.8;transition:opacity .6s}
 #fs.dim{opacity:.25}
@@ -21,7 +24,7 @@ iframe{position:fixed;top:env(safe-area-inset-top,0px);right:env(safe-area-inset
 </head>
 <body>
 <iframe src="https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec" allow="clipboard-write; fullscreen; autoplay" allowfullscreen title="冒険者の宿"></iframe>
-<div id="start"><b>冒険者の宿</b><span>タップして冒険を始める</span><small>画面いっぱいで開くよ</small></div>
+<div id="start"><b>冒険者の宿</b><span>ようこそ！</span><small>Chrome の右上の ︙ から ホーム画面に追加 をすると、次からはアイコンで、いつも画面いっぱいで開くよ（全画面の案内も出ないよ）</small><div class="row"><button id="stGo">このまま開く</button><button id="stFs" class="sub">全画面で開く</button></div></div>
 <button id="fs" aria-label="全画面" title="全画面">⛶</button>
 <a id="help">更新中だよ…</a>
 <script>
@@ -32,19 +35,23 @@ help.style.display = 'block';
 window.addEventListener('message', function (e) { if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
 setTimeout(function () { if (!ready) { help.textContent = 'うまく開かないときは、ここを押してね（青い帯つきで開くよ）'; help.href = 'https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec'; } }, 15000);
-// 全画面（2026-10-25 案C）: ホーム画面から全画面・アプリ表示で開けたときは何も出さない。
-// ふつうのChromeのタブで開いたときだけ「タップして冒険を始める」と ⛶ ボタンを出す。
-// 全画面にするのはこのページ自身（GASの外側。iframe の許可の問題を避ける）。人の操作のあとでないと全画面にできないため、タップを演出にした
+// 全画面（2026-10-25 案C → 同日 直し）: ホーム画面から全画面・アプリ表示で開けたときは何も出さず、全画面の命令もしない（案内の文字が出ないように）。
+// ふつうのChromeのタブで開いたときは、自分から全画面にしない（Chromeが毎回「全画面表示をやめるには」を出すため。けんじ「毎回出るのが嫌」）。
+// かわりに、はじめの1回だけ「ホーム画面に追加」の案内を出す。全画面にしたいときは、案内の「全画面で開く」か ⛶ ボタンで（そのときは案内の文字が出る）
 var startEl = document.getElementById('start'), fsBtn = document.getElementById('fs'), dimT;
 var rootEl = document.documentElement;
 var canFs = !!(rootEl.requestFullscreen || rootEl.webkitRequestFullscreen) && document.fullscreenEnabled !== false;
-var installed = window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+var installed = ['fullscreen', 'standalone', 'minimal-ui'].some(function (m) { return window.matchMedia('(display-mode: ' + m + ')').matches; }) || navigator.standalone;
+function seen() { try { return localStorage.getItem('door-guide') === '1'; } catch (e) { return false; } }
+function setSeen() { try { localStorage.setItem('door-guide', '1'); } catch (e) {} }
 function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
 function enterFs() { try { var p = (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen).call(rootEl, { navigationUI: 'hide' }); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
 function exitFs() { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} }
 function showFsUi() { fsBtn.style.display = (canFs && !installed) ? 'block' : 'none'; fsBtn.textContent = isFs() ? '\u2715' : '\u26F6'; fsBtn.classList.remove('dim'); clearTimeout(dimT); dimT = setTimeout(function () { fsBtn.classList.add('dim'); }, 4000); }
-if (canFs && !installed) startEl.style.display = 'flex';
-startEl.addEventListener('click', function () { startEl.style.display = 'none'; enterFs(); showFsUi(); });
+if (!installed && !seen()) startEl.style.display = 'flex';
+if (!canFs) document.getElementById('stFs').style.display = 'none';
+document.getElementById('stGo').addEventListener('click', function () { startEl.style.display = 'none'; setSeen(); showFsUi(); });
+document.getElementById('stFs').addEventListener('click', function () { startEl.style.display = 'none'; setSeen(); enterFs(); showFsUi(); });
 fsBtn.addEventListener('click', function () { if (isFs()) exitFs(); else enterFs(); });
 document.addEventListener('fullscreenchange', showFsUi);
 document.addEventListener('webkitfullscreenchange', showFsUi);
