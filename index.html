@@ -10,7 +10,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 html,body{margin:0;height:100%;background:#3e2614}
-iframe{position:fixed;top:env(safe-area-inset-top,0px);right:env(safe-area-inset-right,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);width:calc(100% - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));height:calc(100% - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:0}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+#safe{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #start{position:fixed;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#3e2614ee;color:#f3e2bd;font:20px sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #start small{font-size:13px;opacity:.75;line-height:1.6;max-width:300px}
 #start .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
@@ -27,12 +28,18 @@ iframe{position:fixed;top:env(safe-area-inset-top,0px);right:env(safe-area-inset
 <div id="start"><b>冒険者の宿</b><span>ようこそ！</span><small>Chrome の右上の ︙ から ホーム画面に追加 をすると、次からはアイコンで、いつも画面いっぱいで開くよ（全画面の案内も出ないよ）</small><div class="row"><button id="stGo">このまま開く</button><button id="stFs" class="sub">全画面で開く</button></div></div>
 <button id="fs" aria-label="全画面" title="全画面">⛶</button>
 <a id="help">更新中だよ…</a>
+<div id="safe"></div>
 <script>
 // 開いてすぐ「更新中だよ」を出し、中の宿から「読めたよ」（inn-ready）が届いたら消す。
 // 15秒たっても届かないときは、押すと宿を直接開ける逃げ道の言葉に変える
 var help = document.getElementById('help'), ready = false;
 help.style.display = 'block';
-window.addEventListener('message', function (e) { if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; } });
+// 画面いっぱい（2026-10-28 けんじ「カメラとナビボタンの位置まで画面を広げて」）: 宿は、カメラの帯・ナビの帯の下まで広げる。
+// 中の宿からは帯の高さが分からないので、「読めたよ」が届いたら、その宿に帯の高さを知らせる（宿は、その分だけボタンや札を内側に出す）
+var safeEl = document.getElementById('safe'), innWin = null;
+function sendSafe() { if (!innWin) return; var cs = getComputedStyle(safeEl); try { innWin.postMessage({ inn: 'safe', t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 }, '*'); } catch (e) {} }
+window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
+window.addEventListener('message', function (e) { if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
 setTimeout(function () { if (!ready) { help.textContent = 'うまく開かないときは、ここを押してね（青い帯つきで開くよ）'; help.href = 'https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec'; } }, 15000);
 // 全画面（2026-10-25 案C → 同日 直し）: ホーム画面から全画面・アプリ表示で開けたときは何も出さず、全画面の命令もしない（案内の文字が出ないように）。
