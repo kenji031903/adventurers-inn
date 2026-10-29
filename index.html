@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 html,body{margin:0;height:100%;background:#3e2614}
-iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#3e2614}
 #safe{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #start{position:fixed;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#3e2614ee;color:#f3e2bd;font:20px sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #start small{font-size:13px;opacity:.75;line-height:1.6;max-width:300px}
@@ -41,10 +41,12 @@ function sendSafe() { if (!innWin) return; var cs = getComputedStyle(safeEl); tr
 // 版286（けんじ「下からスワイプでナビボタンを出したとき、画面が縮むのをやめて、宿の上に重ねたい」）: 横はばが同じまま、高さだけが少し（100px未満）縮んだときは、ナビの帯が出ただけとみなして、宿の高さを縮めず前のままにする（帯は宿の上に重なる）。
 // キーボードなど大きく縮むときと、向きが変わったときは、これまでどおり縮める
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight };
+// 版287: いちばん高かったときの高さを、横はばごとに覚える。ナビの帯を出したまま開き、あとで帯を消しても、宿が伸びないように（ホーム画面から開いたときだけ）
+function saveMax() { if (!installed) return; try { localStorage.setItem('inn-maxh', JSON.stringify({ w: fz.w, h: fz.h })); } catch (e) {} }
 function holdHeight() {
   var w = window.innerWidth, h = window.innerHeight;
-  if (w !== fz.w) { fz.w = w; fz.h = h; ifr.style.height = ''; return; }
-  if (h >= fz.h) { fz.h = h; ifr.style.height = ''; return; }
+  if (w !== fz.w) { fz.w = w; fz.h = h; ifr.style.height = ''; saveMax(); return; }
+  if (h >= fz.h) { fz.h = h; ifr.style.height = ''; saveMax(); return; }
   if (fz.h - h < 100) ifr.style.height = fz.h + 'px'; else ifr.style.height = '';
 }
 window.addEventListener('resize', holdHeight);
@@ -73,6 +75,10 @@ fsBtn.addEventListener('click', function () { if (isFs()) exitFs(); else enterFs
 document.addEventListener('fullscreenchange', showFsUi);
 document.addEventListener('webkitfullscreenchange', showFsUi);
 showFsUi();
+(function () { // 開いた直後から、覚えていた高さ（100px未満だけ高いとき）に合わせる
+  if (!installed) return;
+  try { var o = JSON.parse(localStorage.getItem('inn-maxh') || 'null'); if (o && o.w === fz.w && o.h > fz.h && o.h - fz.h < 100) { fz.h = o.h; ifr.style.height = o.h + 'px'; } else saveMax(); } catch (e) {}
+})();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
