@@ -37,7 +37,16 @@ help.style.display = 'block';
 // 画面いっぱい（2026-10-28 けんじ「カメラとナビボタンの位置まで画面を広げて」）: 宿は、カメラの帯・ナビの帯の下まで広げる。
 // 中の宿からは帯の高さが分からないので、「読めたよ」が届いたら、その宿に帯の高さを知らせる（宿は、その分だけボタンや札を内側に出す）
 var safeEl = document.getElementById('safe'), innWin = null;
-function sendSafe() { if (!innWin) return; var cs = getComputedStyle(safeEl); try { innWin.postMessage({ inn: 'safe', t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 }, '*'); } catch (e) {} }
+// 版288（けんじ「ナビボタンを消しても、画面がずれる」）: 帯の高さ・幅は、横はばが同じあいだは「いちばん大きかった値」のまま減らさない（ナビを出す・消すたびに、宿のボタンの位置が動かないように）。向きが変わったら取り直す
+var sfMax = null;
+try { var so = JSON.parse(localStorage.getItem('inn-safe') || 'null'); if (so && so.w === window.innerWidth) sfMax = so; } catch (e) {}
+function sendSafe() {
+  if (!innWin) return; var cs = getComputedStyle(safeEl), w = window.innerWidth;
+  var n = { w: w, t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
+  if (!sfMax || sfMax.w !== w) sfMax = n; else { ['t', 'r', 'b', 'l'].forEach(function (k) { if (n[k] > sfMax[k]) sfMax[k] = n[k]; }); }
+  try { localStorage.setItem('inn-safe', JSON.stringify(sfMax)); } catch (e) {}
+  try { innWin.postMessage({ inn: 'safe', t: sfMax.t, r: sfMax.r, b: sfMax.b, l: sfMax.l }, '*'); } catch (e) {}
+}
 // 版286（けんじ「下からスワイプでナビボタンを出したとき、画面が縮むのをやめて、宿の上に重ねたい」）: 横はばが同じまま、高さだけが少し（100px未満）縮んだときは、ナビの帯が出ただけとみなして、宿の高さを縮めず前のままにする（帯は宿の上に重なる）。
 // キーボードなど大きく縮むときと、向きが変わったときは、これまでどおり縮める
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight };
