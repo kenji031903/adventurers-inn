@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-html,body{margin:0;height:100%;background:#3e2614}
+html,body{margin:0;height:100%;background:#3e2614;overscroll-behavior:none}
 iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#3e2614}
 #safe{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #start{position:fixed;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#3e2614ee;color:#f3e2bd;font:20px sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -70,13 +70,22 @@ window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition, micR = null;
 function micTell(o) { o.inn = 'mic'; try { if (innWin) innWin.postMessage(o, '*'); } catch (e) {} }
 var micWant = false, micAcc = '', micLast = '', micLang = 'ja-JP', micFails = 0;
+// 版304: Android の Chrome は、同じ言葉を何度も返すことがある（前の結果をふくんだ文や、同じ文のくり返し）。重なりを見て1つにまとめる
+function micMerge(a, s) {
+  a = a || ''; s = s || ''; if (!a) return s; if (!s) return a;
+  var A = a.replace(/\s+/g, ''), S = s.replace(/\s+/g, '');
+  if (S.indexOf(A) === 0) return s;
+  if (A.slice(-S.length) === S || (S.length >= 4 && A.indexOf(S) >= 0)) return a;
+  for (var k = Math.min(a.length, s.length); k > 0; k--) if (a.slice(-k) === s.slice(0, k) && (k >= 2 || k === s.length)) return a + s.slice(k);
+  return a + s;
+}
 function micRun() {
   var r = new SR(); micR = r; r.lang = micLang; r.interimResults = true; r.continuous = true;
-  r.onresult = function (e) { micFails = 0; var t = ''; for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; micLast = t; micTell({ ev: 'result', text: micAcc + t, fin: false }); };
+  r.onresult = function (e) { micFails = 0; var f = '', it = ''; for (var i = 0; i < e.results.length; i++) { var x = e.results[i][0].transcript; if (e.results[i].isFinal) f = micMerge(f, x); else it = x; } var t = micMerge(f, it); micLast = t; micTell({ ev: 'result', text: micMerge(micAcc, t), fin: false }); };
   r.onerror = function (e) { if (e.error === 'no-speech' || e.error === 'aborted') return; if (e.error === 'network') { micFails++; return; } micWant = false; micTell({ ev: 'error', err: e.error }); };
   r.onend = function () {
     if (micR !== r) return; micR = null;
-    if (micWant && micFails < 5) { micAcc += micLast; micLast = ''; setTimeout(function () { if (micWant && !micR) { try { micRun(); } catch (e) { micWant = false; micTell({ ev: 'end' }); } } }, 150); return; }
+    if (micWant && micFails < 5) { micAcc = micMerge(micAcc, micLast); micLast = ''; setTimeout(function () { if (micWant && !micR) { try { micRun(); } catch (e) { micWant = false; micTell({ ev: 'end' }); } } }, 150); return; }
     micWant = false; micTell({ ev: 'end' });
   };
   try { r.start(); } catch (e) { micWant = false; micTell({ ev: 'error', err: String(e) }); }
