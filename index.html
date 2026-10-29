@@ -69,16 +69,25 @@ window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
 // 版292: マイク。Google の中の枠（宿）はマイクの許可がもらえないので、外のこのページで聞き取って、文字だけを宿に送る
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition, micR = null;
 function micTell(o) { o.inn = 'mic'; try { if (innWin) innWin.postMessage(o, '*'); } catch (e) {} }
+var micWant = false, micAcc = '', micLast = '', micLang = 'ja-JP', micFails = 0;
+function micRun() {
+  var r = new SR(); micR = r; r.lang = micLang; r.interimResults = true; r.continuous = true;
+  r.onresult = function (e) { micFails = 0; var t = ''; for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; micLast = t; micTell({ ev: 'result', text: micAcc + t, fin: false }); };
+  r.onerror = function (e) { if (e.error === 'no-speech' || e.error === 'aborted') return; if (e.error === 'network') { micFails++; return; } micWant = false; micTell({ ev: 'error', err: e.error }); };
+  r.onend = function () {
+    if (micR !== r) return; micR = null;
+    if (micWant && micFails < 5) { micAcc += micLast; micLast = ''; setTimeout(function () { if (micWant && !micR) { try { micRun(); } catch (e) { micWant = false; micTell({ ev: 'end' }); } } }, 150); return; }
+    micWant = false; micTell({ ev: 'end' });
+  };
+  try { r.start(); } catch (e) { micWant = false; micTell({ ev: 'error', err: String(e) }); }
+}
 function micCmd(d) {
-  if (d.cmd === 'stop') { try { if (micR) micR.stop(); } catch (e) {} return; }
+  if (d.cmd === 'stop') { micWant = false; try { if (micR) micR.stop(); else micTell({ ev: 'end' }); } catch (e) {} return; }
   if (d.cmd !== 'start') return;
   if (!SR) { micTell({ ev: 'error', err: 'unsupported' }); return; }
-  try { if (micR) micR.abort(); } catch (e) {}
-  var r = new SR(); micR = r; r.lang = d.lang || 'ja-JP'; r.interimResults = true; r.continuous = false;
-  r.onresult = function (e) { var t = '', fin = false; for (var i = 0; i < e.results.length; i++) { t += e.results[i][0].transcript; if (e.results[i].isFinal) fin = true; } micTell({ ev: 'result', text: t, fin: fin }); };
-  r.onerror = function (e) { micTell({ ev: 'error', err: e.error }); };
-  r.onend = function () { if (micR === r) micR = null; micTell({ ev: 'end' }); };
-  try { r.start(); micTell({ ev: 'start' }); } catch (e) { micTell({ ev: 'error', err: String(e) }); }
+  micWant = false; try { if (micR) micR.abort(); } catch (e) {}
+  micR = null; micWant = true; micAcc = ''; micLast = ''; micFails = 0; micLang = d.lang || 'ja-JP';
+  micRun(); micTell({ ev: 'start' });
 }
 window.addEventListener('message', function (e) { if (e.data && e.data.inn === 'mic' && e.data.cmd) { if (!innWin) innWin = e.source; micCmd(e.data); return; } if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
