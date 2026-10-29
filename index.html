@@ -43,9 +43,15 @@ try { var so = JSON.parse(localStorage.getItem('inn-safe') || 'null'); if (so &&
 function sendSafe() {
   if (!innWin) return; var cs = getComputedStyle(safeEl), w = window.innerWidth;
   var n = { w: w, t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
+  // 版292: ナビの帯の高さ（宿の高さを前のまま止めているぶんの縮み）を、横はばごとに覚えて、下の余白にいつも入れる（出す・消すで宿の配置が動かない）
+  var ov = ifr && ifr.style.height ? Math.max(0, fz.h - window.innerHeight) : 0, nk = 'inn-navh', nh = 0;
+  try { var no = JSON.parse(localStorage.getItem(nk) || 'null'); if (no && no.w === w) nh = no.h; } catch (e) {}
+  if (ov > 0 && ov < 100 && ov > nh) { nh = ov; try { localStorage.setItem(nk, JSON.stringify({ w: w, h: nh })); } catch (e) {} }
+  if (!nh && /Android/i.test(navigator.userAgent) && window.innerWidth < 700) nh = 48;
+  n.b = Math.max(n.b, ov, nh);
   if (!sfMax || sfMax.w !== w) sfMax = n; else { ['t', 'r', 'b', 'l'].forEach(function (k) { if (n[k] > sfMax[k]) sfMax[k] = n[k]; }); }
   try { localStorage.setItem('inn-safe', JSON.stringify(sfMax)); } catch (e) {}
-  try { innWin.postMessage({ inn: 'safe', t: sfMax.t, r: sfMax.r, b: sfMax.b, l: sfMax.l }, '*'); } catch (e) {}
+  try { innWin.postMessage({ inn: 'safe', t: sfMax.t, r: sfMax.r, b: sfMax.b, l: sfMax.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
 }
 // 版286（けんじ「下からスワイプでナビボタンを出したとき、画面が縮むのをやめて、宿の上に重ねたい」）: 横はばが同じまま、高さだけが少し（100px未満）縮んだときは、ナビの帯が出ただけとみなして、宿の高さを縮めず前のままにする（帯は宿の上に重なる）。
 // キーボードなど大きく縮むときと、向きが変わったときは、これまでどおり縮める
@@ -60,7 +66,21 @@ function holdHeight() {
 }
 window.addEventListener('resize', holdHeight);
 window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
-window.addEventListener('message', function (e) { if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
+// 版292: マイク。Google の中の枠（宿）はマイクの許可がもらえないので、外のこのページで聞き取って、文字だけを宿に送る
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition, micR = null;
+function micTell(o) { o.inn = 'mic'; try { if (innWin) innWin.postMessage(o, '*'); } catch (e) {} }
+function micCmd(d) {
+  if (d.cmd === 'stop') { try { if (micR) micR.stop(); } catch (e) {} return; }
+  if (d.cmd !== 'start') return;
+  if (!SR) { micTell({ ev: 'error', err: 'unsupported' }); return; }
+  try { if (micR) micR.abort(); } catch (e) {}
+  var r = new SR(); micR = r; r.lang = d.lang || 'ja-JP'; r.interimResults = true; r.continuous = false;
+  r.onresult = function (e) { var t = '', fin = false; for (var i = 0; i < e.results.length; i++) { t += e.results[i][0].transcript; if (e.results[i].isFinal) fin = true; } micTell({ ev: 'result', text: t, fin: fin }); };
+  r.onerror = function (e) { micTell({ ev: 'error', err: e.error }); };
+  r.onend = function () { if (micR === r) micR = null; micTell({ ev: 'end' }); };
+  try { r.start(); micTell({ ev: 'start' }); } catch (e) { micTell({ ev: 'error', err: String(e) }); }
+}
+window.addEventListener('message', function (e) { if (e.data && e.data.inn === 'mic' && e.data.cmd) { if (!innWin) innWin = e.source; micCmd(e.data); return; } if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
 setTimeout(function () { if (!ready) { help.textContent = 'うまく開かないときは、ここを押してね（青い帯つきで開くよ）'; help.href = 'https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec'; } }, 15000);
 // 全画面（2026-10-25 案C → 同日 直し）: ホーム画面から全画面・アプリ表示で開けたときは何も出さず、全画面の命令もしない（案内の文字が出ないように）。
