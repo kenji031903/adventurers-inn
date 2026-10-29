@@ -38,6 +38,16 @@ help.style.display = 'block';
 // 中の宿からは帯の高さが分からないので、「読めたよ」が届いたら、その宿に帯の高さを知らせる（宿は、その分だけボタンや札を内側に出す）
 var safeEl = document.getElementById('safe'), innWin = null;
 function sendSafe() { if (!innWin) return; var cs = getComputedStyle(safeEl); try { innWin.postMessage({ inn: 'safe', t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 }, '*'); } catch (e) {} }
+// 版286（けんじ「下からスワイプでナビボタンを出したとき、画面が縮むのをやめて、宿の上に重ねたい」）: 横はばが同じまま、高さだけが少し（100px未満）縮んだときは、ナビの帯が出ただけとみなして、宿の高さを縮めず前のままにする（帯は宿の上に重なる）。
+// キーボードなど大きく縮むときと、向きが変わったときは、これまでどおり縮める
+var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight };
+function holdHeight() {
+  var w = window.innerWidth, h = window.innerHeight;
+  if (w !== fz.w) { fz.w = w; fz.h = h; ifr.style.height = ''; return; }
+  if (h >= fz.h) { fz.h = h; ifr.style.height = ''; return; }
+  if (fz.h - h < 100) ifr.style.height = fz.h + 'px'; else ifr.style.height = '';
+}
+window.addEventListener('resize', holdHeight);
 window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
 window.addEventListener('message', function (e) { if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
