@@ -1,18 +1,21 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<!-- 版317: 上の余白も、いつも 28px 以上 -->
-<!-- 版316: スマホ縦はナビの帯の分をいつも下にあける -->
+<!-- 版322: 本当の全画面（帯は絵の上に透けて乗る。宿の大きさは動かさない） -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>冒険者の宿</title>
-<meta name="theme-color" content="#3e2614">
+<meta name="theme-color" content="#120c07">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-html,body{margin:0;height:100%;background:#3e2614;overscroll-behavior:none}
-iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#3e2614}
+html,body{margin:0;height:100%;background:#120c07;overflow:hidden;overscroll-behavior:none}
+iframe{position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#120c07}
+#glow{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;background:radial-gradient(ellipse 90% 55% at 50% 40%,rgba(255,222,150,.42),rgba(255,176,84,.16) 48%,rgba(255,160,60,0) 78%)}
+#glow.on{animation:glow322 1.9s ease-out}
+@keyframes glow322{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#glow.on{animation:none}}
 #safe{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #start{position:fixed;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#3e2614ee;color:#f3e2bd;font:20px sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #start small{font-size:13px;opacity:.75;line-height:1.6;max-width:300px}
@@ -31,6 +34,7 @@ iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#3e2614
 <button id="fs" aria-label="全画面" title="全画面">⛶</button>
 <a id="help">更新中だよ…</a>
 <div id="safe"></div>
+<div id="glow"></div>
 <script>
 // 開いてすぐ「更新中だよ」を出し、中の宿から「読めたよ」（inn-ready）が届いたら消す。
 // 15秒たっても届かないときは、押すと宿を直接開ける逃げ道の言葉に変える
@@ -39,41 +43,40 @@ help.style.display = 'block';
 // 画面いっぱい（2026-10-28 けんじ「カメラとナビボタンの位置まで画面を広げて」）: 宿は、カメラの帯・ナビの帯の下まで広げる。
 // 中の宿からは帯の高さが分からないので、「読めたよ」が届いたら、その宿に帯の高さを知らせる（宿は、その分だけボタンや札を内側に出す）
 var safeEl = document.getElementById('safe'), innWin = null;
-// 版288（けんじ「ナビボタンを消しても、画面がずれる」）: 帯の高さ・幅は、横はばが同じあいだは「いちばん大きかった値」のまま減らさない（ナビを出す・消すたびに、宿のボタンの位置が動かないように）。向きが変わったら取り直す
-var sfMax = null;
-try { var so = JSON.parse(localStorage.getItem('inn-safe') || 'null'); if (so && so.w === window.innerWidth) sfMax = so; } catch (e) {}
-// 版316（2026-10-30 けんじ「アンドロイドボタンと干渉しちゃう 縮尺も変わるし、ボタン分はあらかじめ確保しておこうか？」）:
-// スマホ縦では、ナビの帯の分（覚えた高さ。分からなければ 48px）を、帯が出ていても消えていても、いつも下にあけておく。
-// 宿の高さは「いちばん高かったときの高さ − 帯の分」に止めるので、帯を出す・消すで宿の大きさも縮尺も変わらない。帯の分は宿の外なので、宿には下の余白 0 を知らせる
+// 版322（2026-10-30 けんじ「やっぱり本当は全画面がいいな。Android メニューのボタンは透明で乗る感じで、一切動かない感じに。上は茶色い部分なしで、カメラの部分にメニューを重ならない位置に置くだけ」）:
+// 版316・317の「下の帯・上の帯をいつもあけておく」はやめた。宿の絵は、カメラ・通知の帯やナビの帯の下まで、画面の端から端まで広げる。
+// 1. ホーム画面のアプリでは、宿のどこかを触ったときに本当の全画面にする（宿が「触ったよ」と知らせてくる。js_9a）。帯は、出しても絵の上に透けて乗るだけで、宿の大きさは変わらない
+// 2. 帯の高さは、宿の大きさには使わない。上のメニューの列（カメラをよける）と、下のボタン・入力欄（ナビのボタンをよける）の位置だけに使ってもらう
+// 3. それでも窓が少しだけ縮んだとき（全画面になる前に帯を出したときなど）は、宿の高さを「いちばん高かったとき」のまま止め、上へずらして、絵が画面の同じ場所にいるようにする。キーボードのように大きく縮んだときだけ、これまでどおり宿も縮める（入力欄が隠れないように）
+var AND = /Android/i.test(navigator.userAgent);
 function navKeep(w) { var nh = 0; try { var no = JSON.parse(localStorage.getItem('inn-navh') || 'null'); if (no && no.w === w) nh = no.h; } catch (e) {} return nh; }
-function resBottom() {
-  var w = window.innerWidth; if (w >= window.innerHeight || w >= 700) return 0; // 横向き・パソコンは、これまでどおり
-  if (!installed && !isFs()) return 0; // ふつうの Chrome のタブでは、ナビの帯は画面の外なので、あけない
-  var eb = parseFloat(getComputedStyle(safeEl).paddingBottom) || 0, nh = navKeep(w);
-  var phone = /Android/i.test(navigator.userAgent) ? 48 : 0;
-  return Math.min(100, Math.max(eb, nh, phone));
-}
-var resNow = 0;
+function portraitPhone() { var w = window.innerWidth; return w < window.innerHeight && w < 700; }
+// 窓が画面の上から下までぜんぶ使えているか（このときは、帯が絵の上に乗る）
+function edgeToEdge() { return portraitPhone() && window.innerHeight >= (screen.height || 0) - 2; }
+var held = false, kb = false, lastSafe = null;
 function sendSafe() {
-  if (!innWin) return; var cs = getComputedStyle(safeEl), w = window.innerWidth;
-  var n = { w: w, t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
-  if (resNow > 0) { n.b = 0; n.t = Math.max(n.t, 28); } // 下は宿の外にあけてある。版317（けんじ「カメラのところもメニューが重なっちゃってる」）: 上も、カメラ・通知の帯の分（分からなければ 28px）を、いつもあけてもらう
-  else { var ov = ifr && ifr.style.height ? Math.max(0, fz.h - window.innerHeight) : 0; n.b = Math.max(n.b, ov, navKeep(w)); }
-  if (!sfMax || sfMax.w !== w) sfMax = n; else { ['t', 'r', 'l'].forEach(function (k) { if (n[k] > sfMax[k]) sfMax[k] = n[k]; }); sfMax.b = n.b; }
-  try { localStorage.setItem('inn-safe', JSON.stringify(sfMax)); } catch (e) {}
-  try { innWin.postMessage({ inn: 'safe', t: sfMax.t, r: sfMax.r, b: sfMax.b, l: sfMax.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
+  if (!innWin || held) return; // 窓が少し縮んでいるあいだは、前の位置のまま（ボタンが動かないように）
+  var cs = getComputedStyle(safeEl), w = window.innerWidth;
+  var n = { t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
+  if (AND && edgeToEdge()) {
+    if (n.t < 1) n.t = 28; // カメラの高さを Chrome が教えてくれないときの予備
+    if (n.b < 1) n.b = Math.min(64, navKeep(w) || 48); // ナビのボタンが透けて乗る場所の分だけ、下のボタン・入力欄を上に
+  }
+  if (kb) n.b = 0; // キーボードが出ているときは、ナビの帯はキーボードの下
+  lastSafe = n;
+  try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
 }
-var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight };
-function saveMax() { if (!installed) return; try { localStorage.setItem('inn-maxh', JSON.stringify({ w: fz.w, h: fz.h })); } catch (e) {} }
+var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight }, topFull = 0;
 function holdHeight() {
   var w = window.innerWidth, h = window.innerHeight;
-  if (w !== fz.w) { fz.w = w; fz.h = h; saveMax(); }
-  else if (h >= fz.h) { fz.h = h; saveMax(); }
+  if (w !== fz.w) { fz.w = w; fz.h = h; } else if (h > fz.h) fz.h = h;
   var ov = fz.h - h;
   if (ov > 0 && ov < 100 && ov > navKeep(w)) { try { localStorage.setItem('inn-navh', JSON.stringify({ w: w, h: ov })); } catch (e) {} } // ナビの帯が出て縮んだ分を覚える
-  if (ov >= 100) { resNow = 0; ifr.style.height = ''; return; } // キーボードなど大きく縮んだときは、これまでどおり縮める
-  resNow = resBottom();
-  ifr.style.height = (resNow > 0 || ov > 0) ? (fz.h - resNow) + 'px' : '';
+  kb = ov >= 150; held = ov > 0 && !kb && portraitPhone();
+  if (!held) { ifr.style.height = ''; ifr.style.top = ''; if (lastSafe && ov <= 0) topFull = lastSafe.t; return; }
+  // 帯が出て窓が縮んだ: 宿の大きさはそのまま。上が縮んだ分（通知の帯の分）だけ上へずらす
+  var up = Math.min(ov, Math.max(topFull, AND ? 24 : 0));
+  ifr.style.height = fz.h + 'px'; ifr.style.top = (-up) + 'px';
 }
 window.addEventListener('resize', holdHeight);
 window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
@@ -109,7 +112,7 @@ function micCmd(d) {
   micR = null; micWant = true; micAcc = ''; micLast = ''; micFails = 0; micLang = d.lang || 'ja-JP';
   micRun(); micTell({ ev: 'start' });
 }
-window.addEventListener('message', function (e) { if (e.data && e.data.inn === 'mic' && e.data.cmd) { if (!innWin) innWin = e.source; micCmd(e.data); return; } if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
+window.addEventListener('message', function (e) { if (e.data && e.data.inn === 'tap') { if (autoFs && !isFs()) enterFs(); return; } if (e.data && e.data.inn === 'mic' && e.data.cmd) { if (!innWin) innWin = e.source; micCmd(e.data); return; } if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
 setTimeout(function () { if (!ready) { help.textContent = 'うまく開かないときは、ここを押してね（青い帯つきで開くよ）'; help.href = 'https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec'; } }, 15000);
 // 全画面（2026-10-25 案C → 同日 直し）: ホーム画面から全画面・アプリ表示で開けたときは何も出さず、全画面の命令もしない（案内の文字が出ないように）。
@@ -122,6 +125,8 @@ var installed = ['fullscreen', 'standalone', 'minimal-ui'].some(function (m) { r
 function seen() { try { return localStorage.getItem('door-guide') === '1'; } catch (e) { return false; } }
 function setSeen() { try { localStorage.setItem('door-guide', '1'); } catch (e) {} }
 function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+// 版322: ホーム画面のアプリのときは、触ったら本当の全画面にする（ふつうのタブでは自分からしない。案内の文字が毎回出るため）
+var autoFs = false;
 function enterFs() { try { var p = (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen).call(rootEl, { navigationUI: 'hide' }); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
 function exitFs() { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} }
 function showFsUi() { fsBtn.style.display = (canFs && !installed) ? 'block' : 'none'; fsBtn.textContent = isFs() ? '\u2715' : '\u26F6'; fsBtn.classList.remove('dim'); clearTimeout(dimT); dimT = setTimeout(function () { fsBtn.classList.add('dim'); }, 4000); }
@@ -131,13 +136,14 @@ document.getElementById('stGo').addEventListener('click', function () { startEl.
 document.getElementById('stFs').addEventListener('click', function () { startEl.style.display = 'none'; setSeen(); enterFs(); showFsUi(); });
 fsBtn.addEventListener('click', function () { if (isFs()) exitFs(); else enterFs(); });
 document.addEventListener('fullscreenchange', showFsUi);
+// 版322 のおまけ: 本当の全画面になった瞬間、部屋のランプが一度だけ、ふわっと灯る
+var glowEl = document.getElementById('glow');
+function glow() { glowEl.classList.remove('on'); void glowEl.offsetWidth; glowEl.classList.add('on'); }
+document.addEventListener('fullscreenchange', function () { if (isFs()) glow(); setTimeout(function () { holdHeight(); sendSafe(); }, 350); });
 document.addEventListener('webkitfullscreenchange', showFsUi);
 showFsUi();
-(function () { // 開いた直後から、覚えていた高さ（100px未満だけ高いとき）に合わせる
-  if (!installed) return;
-  try { var o = JSON.parse(localStorage.getItem('inn-maxh') || 'null'); if (o && o.w === fz.w && o.h > fz.h && o.h - fz.h < 100) fz.h = o.h; else saveMax(); } catch (e) {}
-})();
-holdHeight(); // 版316: 開いた直後から、下の帯の分をあけておく
+autoFs = installed && canFs && AND;
+holdHeight();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
