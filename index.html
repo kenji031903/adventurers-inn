@@ -30,7 +30,7 @@ iframe{position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#1
 </style>
 </head>
 <body>
-<iframe src="https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec" allow="clipboard-write; fullscreen; autoplay; microphone *" allowfullscreen title="冒険者の宿"></iframe>
+<iframe src="https://script.google.com/macros/s/AKfycbwSYJ97QgF457O8zIDp8kYtMeJY4LQoUuO881Rh_1uIOnZYdgi2YeyReQTZPn0HHahoDg/exec" allow="clipboard-write; fullscreen; autoplay; microphone *" allowfullscreen title="冒険者の宿"></iframe>
 <div id="start"><b>冒険者の宿</b><span>ようこそ！</span><small>Chrome の右上の ︙ から ホーム画面に追加 をすると、次からはアイコンで、いつも画面いっぱいで開くよ（全画面の案内も出ないよ）</small><div class="row"><button id="stGo">このまま開く</button><button id="stFs" class="sub">全画面で開く</button></div></div>
 <button id="fs" aria-label="全画面" title="全画面">⛶</button>
 <a id="help">更新中だよ…</a>
@@ -55,7 +55,7 @@ function navKeep(w) { var nh = 0; try { var no = JSON.parse(localStorage.getItem
 function portraitPhone() { var w = window.innerWidth; return w < window.innerHeight && w < 700; }
 // 窓が画面の上から下までぜんぶ使えているか（このときは、帯が絵の上に乗る）
 function edgeToEdge() { return portraitPhone() && window.innerHeight >= (screen.height || 0) - 2; }
-var held = false, kb = false, lastSafe = null;
+var held = false, kb = false, lastSafe = null, kbOffAt = 0;
 function sendSafe() {
   if (!innWin || held) return; // 窓が少し縮んでいるあいだは、前の位置のまま（ボタンが動かないように）
   var cs = getComputedStyle(safeEl), w = window.innerWidth;
@@ -71,7 +71,7 @@ function sendSafe() {
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight }, topFull = 0;
 var bz = { w: 0, h: 0, t: 0 };
 // 版324c: 窓が一瞬大きくなると、宿はイベントより先にその高さで描かれてしまうので、キーボードがかぶさる Chrome では、宿の高さをいつも数字で決めておく
-function holdHeight() { holdHeight0(); if (vkOn() && !ifr.style.height && bz.h > 0) ifr.style.height = bz.h + 'px'; }
+function holdHeight() { var kb0 = kb; holdHeight0(); if (vkOn() && !ifr.style.height && bz.h > 0) ifr.style.height = bz.h + 'px'; if (kb0 && !kb) kbOffAt = Date.now(); }
 function holdHeight0() {
   var w = window.innerWidth, h = window.innerHeight;
   // 版324b: キーボードが絵にかぶさる Chrome では、キーボードが出た瞬間に、窓の高さが一度キーボードの分だけ大きくなってから戻る（宿がガタッとなる）。
@@ -112,7 +112,7 @@ if (VK && 'overlaysContent' in VK) {
   VK.addEventListener('geometrychange', function () {
     // 版324: boundingRect の y は Chrome によって画面の上からずれることがあるので、高さだけを使う
     var r = VK.boundingRect, h = (r && r.height > 0) ? Math.round(r.height) : 0;
-    vkH = h >= 100 ? h : 0; ifr.style.height = ''; ifr.style.top = ''; holdHeight(); tellKb(); sendSafe();
+    if (vkH >= 100 && h < 100) kbOffAt = Date.now(); vkH = h >= 100 ? h : 0; ifr.style.height = ''; ifr.style.top = ''; holdHeight(); tellKb(); sendSafe();
   });
 }
 // 版292: マイク。Google の中の枠（宿）はマイクの許可がもらえないので、外のこのページで聞き取って、文字だけを宿に送る
@@ -147,9 +147,9 @@ function micCmd(d) {
   micR = null; micWant = true; micAcc = ''; micLast = ''; micFails = 0; micLang = d.lang || 'ja-JP';
   micRun(); micTell({ ev: 'start' });
 }
-window.addEventListener('message', function (e) { if (e.data && e.data.inn === 'tap') { if (autoFs && !isFs()) enterFs(); return; } if (e.data && e.data.inn === 'mic' && e.data.cmd) { if (!innWin) innWin = e.source; micCmd(e.data); return; } if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); } });
+window.addEventListener('message', function (e) { if (e.data && e.data.inn === 'tap') { if (fsMayAsk()) { fsUsed(); enterFs(); } return; } if (e.data && e.data.inn === 'mic' && e.data.cmd) { if (!innWin) innWin = e.source; micCmd(e.data); return; } if (e.data === 'inn-ready') { ready = true; help.style.display = 'none'; innWin = e.source; sendSafe(); glowOnce(); } });
 // 逃げ道のリンクは15秒たってから（すぐ押すと、Googleの青い帯つきの直接の宿が開いてしまうため）
-setTimeout(function () { if (!ready) { help.textContent = 'うまく開かないときは、ここを押してね（青い帯つきで開くよ）'; help.href = 'https://script.google.com/macros/s/AKfycbwC6b56VZMl1-wjuD731Blbp-TSmAD4FKmoXgaAl1_TrFgmJKrc6wWtaSN4p2Vln-o/exec'; } }, 15000);
+setTimeout(function () { if (!ready) { help.textContent = 'うまく開かないときは、ここを押してね（青い帯つきで開くよ）'; help.href = 'https://script.google.com/macros/s/AKfycbwSYJ97QgF457O8zIDp8kYtMeJY4LQoUuO881Rh_1uIOnZYdgi2YeyReQTZPn0HHahoDg/exec'; } }, 15000);
 // 全画面（2026-10-25 案C → 同日 直し）: ホーム画面から全画面・アプリ表示で開けたときは何も出さず、全画面の命令もしない（案内の文字が出ないように）。
 // ふつうのChromeのタブで開いたときは、自分から全画面にしない（Chromeが毎回「全画面表示をやめるには」を出すため。けんじ「毎回出るのが嫌」）。
 // かわりに、はじめの1回だけ「ホーム画面に追加」の案内を出す。全画面にしたいときは、案内の「全画面で開く」か ⛶ ボタンで（そのときは案内の文字が出る）
@@ -174,15 +174,29 @@ document.addEventListener('fullscreenchange', showFsUi);
 // 版322 のおまけ: 本当の全画面になった瞬間、部屋のランプが一度だけ、ふわっと灯る
 var glowEl = document.getElementById('glow');
 function glow() { glowEl.classList.remove('on'); void glowEl.offsetWidth; glowEl.classList.add('on'); }
-document.addEventListener('fullscreenchange', function () { if (isFs()) glow(); setTimeout(function () { holdHeight(); sendSafe(); }, 350); });
+document.addEventListener('fullscreenchange', function () { if (isFs()) { glowOpen = true; glow(); } setTimeout(function () { holdHeight(); sendSafe(); }, 350); });
 document.addEventListener('webkitfullscreenchange', showFsUi);
 showFsUi();
 autoFs = installed && canFs && AND;
+// 版362（キュー11の1。けんじ「全画面の知らせが何度も出る」）: 全画面のお願いは、開いたときと、けんじが自分で全画面をといたあとの1回だけ。
+// 30秒に1回まで。ホーム画面のアプリがもともと全画面のとき（display-mode: fullscreen）と、キーボードを閉じた直後（1.5秒）はお願いしない
+var fsLeft = true, fsAskAt = 0;
+function fsMayAsk() {
+  if (!autoFs || isFs() || !fsLeft) return false;
+  try { if (window.matchMedia('(display-mode: fullscreen)').matches) return false; } catch (e) {}
+  var now = Date.now();
+  return now - kbOffAt > 1500 && now - fsAskAt > 30000;
+}
+function fsUsed() { fsLeft = false; fsAskAt = Date.now(); }
+document.addEventListener('fullscreenchange', function () { if (!isFs()) fsLeft = true; });
+// 部屋のランプ（glow）は、全画面にならなくても、宿を開いたときに一度だけ灯す
+var glowOpen = false;
+function glowOnce() { if (glowOpen) return; glowOpen = true; glow(); }
 // 版322e: 戻るボタンなどで全画面がとけたあと、宿の中を触っても、Chrome は外の玄関に全画面をゆるさない（宿の中を触ったことは、外には届かないため）。
 // そこで、ホーム画面のアプリで全画面でないあいだだけ、宿の上に見えない膜を1枚しく。膜を1回触ると全画面にもどって、膜は消える（その1回だけは宿には届かない）
 var catchEl = document.getElementById('fsCatch'), catchNo = false;
-function paintCatch() { catchEl.style.display = (autoFs && !isFs() && !catchNo) ? 'block' : 'none'; }
-function onCatch(e) { if (isFs()) { paintCatch(); return; } try { var p = (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen).call(rootEl, { navigationUI: 'hide' }); if (p && p.catch) p.catch(function () { catchNo = true; paintCatch(); }); } catch (x) { catchNo = true; } catchEl.style.display = 'none'; if (e && e.preventDefault) e.preventDefault(); }
+function paintCatch() { catchEl.style.display = (fsMayAsk() && !catchNo) ? 'block' : 'none'; clearTimeout(paintCatch.t); if (autoFs && !isFs() && fsLeft && !catchNo && catchEl.style.display === 'none') paintCatch.t = setTimeout(paintCatch, 2000); }
+function onCatch(e) { if (isFs() || !fsMayAsk()) { paintCatch(); return; } fsUsed(); try { var p = (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen).call(rootEl, { navigationUI: 'hide' }); if (p && p.catch) p.catch(function () { catchNo = true; paintCatch(); }); } catch (x) { catchNo = true; } catchEl.style.display = 'none'; if (e && e.preventDefault) e.preventDefault(); }
 catchEl.addEventListener('pointerup', onCatch);
 catchEl.addEventListener('touchend', function (e) { if (catchEl.style.display !== 'none') onCatch(e); });
 document.addEventListener('fullscreenchange', function () { catchNo = false; setTimeout(paintCatch, isFs() ? 0 : 500); });
