@@ -62,7 +62,7 @@ function sendSafe() {
     if (n.t < 1) n.t = 28; // カメラの高さを Chrome が教えてくれないときの予備
     if (n.b < 1) n.b = Math.min(64, navKeep(w) || 48); // ナビのボタンが透けて乗る場所の分だけ、下のボタン・入力欄を上に
   }
-  if (kb) n.b = 0; // キーボードが出ているときは、ナビの帯はキーボードの下
+  if (kb) n.b = (AND && isFs()) ? Math.min(64, navKeep(w) || 48) : 0; // キーボードが出ているときは、ナビの帯はキーボードの下（本当の全画面では、ナビの帯がキーボードの下に透けて乗るので、その分だけ上に）
   lastSafe = n;
   try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
 }
