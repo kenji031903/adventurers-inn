@@ -47,6 +47,7 @@ try { var so = JSON.parse(localStorage.getItem('inn-safe') || 'null'); if (so &&
 function navKeep(w) { var nh = 0; try { var no = JSON.parse(localStorage.getItem('inn-navh') || 'null'); if (no && no.w === w) nh = no.h; } catch (e) {} return nh; }
 function resBottom() {
   var w = window.innerWidth; if (w >= window.innerHeight || w >= 700) return 0; // 横向き・パソコンは、これまでどおり
+  if (!installed && !isFs()) return 0; // ふつうの Chrome のタブでは、ナビの帯は画面の外なので、あけない
   var eb = parseFloat(getComputedStyle(safeEl).paddingBottom) || 0, nh = navKeep(w);
   var phone = /Android/i.test(navigator.userAgent) ? 48 : 0;
   return Math.min(100, Math.max(eb, nh, phone));
