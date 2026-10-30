@@ -14,6 +14,7 @@ html,body{margin:0;height:100%;background:#120c07;overflow:hidden;overscroll-beh
 iframe{position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#120c07}
 #glow{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;background:radial-gradient(ellipse 90% 55% at 50% 40%,rgba(255,222,150,.42),rgba(255,176,84,.16) 48%,rgba(255,160,60,0) 78%)}
 #glow.on{animation:glow322 1.9s ease-out}
+#fsCatch{position:fixed;inset:0;z-index:6;background:transparent;display:none;touch-action:manipulation}
 @keyframes glow322{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){#glow.on{animation:none}}
 #safe{position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
@@ -35,6 +36,7 @@ iframe{position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#1
 <a id="help">更新中だよ…</a>
 <div id="safe"></div>
 <div id="glow"></div>
+<div id="fsCatch"></div>
 <script>
 // 開いてすぐ「更新中だよ」を出し、中の宿から「読めたよ」（inn-ready）が届いたら消す。
 // 15秒たっても届かないときは、押すと宿を直接開ける逃げ道の言葉に変える
@@ -147,6 +149,15 @@ document.addEventListener('fullscreenchange', function () { if (isFs()) glow(); 
 document.addEventListener('webkitfullscreenchange', showFsUi);
 showFsUi();
 autoFs = installed && canFs && AND;
+// 版322e: 戻るボタンなどで全画面がとけたあと、宿の中を触っても、Chrome は外の玄関に全画面をゆるさない（宿の中を触ったことは、外には届かないため）。
+// そこで、ホーム画面のアプリで全画面でないあいだだけ、宿の上に見えない膜を1枚しく。膜を1回触ると全画面にもどって、膜は消える（その1回だけは宿には届かない）
+var catchEl = document.getElementById('fsCatch'), catchNo = false;
+function paintCatch() { catchEl.style.display = (autoFs && !isFs() && !catchNo) ? 'block' : 'none'; }
+function onCatch(e) { if (isFs()) { paintCatch(); return; } try { var p = (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen).call(rootEl, { navigationUI: 'hide' }); if (p && p.catch) p.catch(function () { catchNo = true; paintCatch(); }); } catch (x) { catchNo = true; } catchEl.style.display = 'none'; if (e && e.preventDefault) e.preventDefault(); }
+catchEl.addEventListener('pointerup', onCatch);
+catchEl.addEventListener('touchend', function (e) { if (catchEl.style.display !== 'none') onCatch(e); });
+document.addEventListener('fullscreenchange', function () { catchNo = false; setTimeout(paintCatch, isFs() ? 0 : 500); });
+paintCatch();
 holdHeight();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
