@@ -69,8 +69,20 @@ function sendSafe() {
   try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
 }
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight }, topFull = 0;
+var bz = { w: 0, h: 0, t: 0 };
 function holdHeight() {
   var w = window.innerWidth, h = window.innerHeight;
+  // 版324b: キーボードが絵にかぶさる Chrome では、キーボードが出た瞬間に、窓の高さが一度キーボードの分だけ大きくなってから戻る（宿がガタッとなる）。
+  // 同じ幅で急に200以上高くなったら、少しのあいだ宿の高さを前のままにする（1.5秒たっても高いままなら、本当に広くなったとみなす）
+  if (vkOn()) {
+    if (w !== bz.w) { bz.w = w; bz.h = h; }
+    if (h - bz.h >= 200) {
+      ifr.style.height = bz.h + 'px'; ifr.style.top = '';
+      clearTimeout(bz.t); bz.t = setTimeout(function () { if (window.innerWidth === bz.w && window.innerHeight - bz.h >= 200) { bz.h = window.innerHeight; holdHeight(); } }, 1500);
+      return;
+    }
+    bz.h = h;
+  }
   if (w !== fz.w) { fz.w = w; fz.h = h; } else if (h > fz.h) fz.h = h;
   var ov = fz.h - h;
   if (ov > 0 && ov < 100 && ov > navKeep(w)) { try { localStorage.setItem('inn-navh', JSON.stringify({ w: w, h: ov })); } catch (e) {} } // ナビの帯が出て縮んだ分を覚える
