@@ -64,7 +64,7 @@ function sendSafe() {
     if (n.t < 1) n.t = 28; // カメラの高さを Chrome が教えてくれないときの予備
     if (n.b < 1) n.b = Math.min(64, navKeep(w) || 48); // ナビのボタンが透けて乗る場所の分だけ、下のボタン・入力欄を上に
   }
-  if (kb) n.b = (AND && isFs()) ? Math.min(64, navKeep(w) || 48) : 0; // キーボードが出ているときは、ナビの帯はキーボードの下（本当の全画面では、ナビの帯がキーボードの下に透けて乗るので、その分だけ上に）
+  if (kb) n.b = (AND && isFs() && !vkOn()) ? Math.min(64, navKeep(w) || 48) : 0; // キーボードが出ているときは、ナビの帯はキーボードの下（本当の全画面では、ナビの帯がキーボードの下に透けて乗るので、その分だけ上に）
   lastSafe = n;
   try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
 }
@@ -74,10 +74,10 @@ function holdHeight() {
   if (w !== fz.w) { fz.w = w; fz.h = h; } else if (h > fz.h) fz.h = h;
   var ov = fz.h - h;
   if (ov > 0 && ov < 100 && ov > navKeep(w)) { try { localStorage.setItem('inn-navh', JSON.stringify({ w: w, h: ov })); } catch (e) {} } // ナビの帯が出て縮んだ分を覚える
-  kb = ov >= 150; held = ov > 0 && !kb && portraitPhone();
+  kb = ov >= 150 || vkH >= 100; held = ov > 0 && !kb && portraitPhone();
   // 版322b: 本当の全画面では、キーボードが出ても窓が縮まず、絵の上にかぶさるだけ（入力欄が隠れる）。見えている高さ（visualViewport）を見て、宿をキーボードの上までに縮める
   var vv = window.visualViewport, kh = vv ? h - vv.height : 0;
-  if (!kb && kh >= 150) { kb = true; held = false; ifr.style.height = Math.round(vv.height) + 'px'; ifr.style.top = Math.round(vv.offsetTop) + 'px'; return; }
+  if (!vkOn() && !kb && kh >= 150) { kb = true; held = false; ifr.style.height = Math.round(vv.height) + 'px'; ifr.style.top = Math.round(vv.offsetTop) + 'px'; return; }
   if (!held) { ifr.style.height = ''; ifr.style.top = ''; if (lastSafe && ov <= 0) topFull = lastSafe.t; return; }
   // 帯が出て窓が縮んだ: 宿の大きさはそのまま。上が縮んだ分（通知の帯の分）だけ上へずらす
   var up = Math.min(ov, Math.max(topFull, AND ? 24 : 0));
@@ -86,6 +86,20 @@ function holdHeight() {
 window.addEventListener('resize', holdHeight);
 window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
 if (window.visualViewport) { var vvT; window.visualViewport.addEventListener('resize', function () { holdHeight(); clearTimeout(vvT); vvT = setTimeout(sendSafe, 300); }); window.visualViewport.addEventListener('scroll', function () { if (kb) holdHeight(); }); }
+// 版324（2026-10-30 けんじ「キーボードを出すと、部屋が上に押されて、みんなが体の途中で切れる。ガタッとなる」）:
+// キーボードは、宿の絵の上にかぶさるだけにする（宿の大きさも位置も変えない）。キーボードの上の端までの高さだけを宿に知らせ、宿は入力欄やシートだけをその上に出す
+// （Chrome の VirtualKeyboard。使えない Chrome では、これまでどおり宿を縮める）
+var VK = navigator.virtualKeyboard, vkH = 0;
+function vkOn() { return !!(VK && VK.overlaysContent); }
+function tellKb() { try { if (innWin) innWin.postMessage({ inn: 'kb', h: vkH }, '*'); } catch (e) {} }
+if (VK && 'overlaysContent' in VK) {
+  try { VK.overlaysContent = true; } catch (e) {}
+  VK.addEventListener('geometrychange', function () {
+    // 版324: boundingRect の y は Chrome によって画面の上からずれることがあるので、高さだけを使う
+    var r = VK.boundingRect, h = (r && r.height > 0) ? Math.round(r.height) : 0;
+    vkH = h >= 100 ? h : 0; ifr.style.height = ''; ifr.style.top = ''; holdHeight(); tellKb(); sendSafe();
+  });
+}
 // 版292: マイク。Google の中の枠（宿）はマイクの許可がもらえないので、外のこのページで聞き取って、文字だけを宿に送る
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition, micR = null;
 function micTell(o) { o.inn = 'mic'; try { if (innWin) innWin.postMessage(o, '*'); } catch (e) {} }
