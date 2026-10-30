@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
+<!-- 版317: 上の余白も、いつも 28px 以上 -->
 <!-- 版316: スマホ縦はナビの帯の分をいつも下にあける -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -56,7 +57,7 @@ var resNow = 0;
 function sendSafe() {
   if (!innWin) return; var cs = getComputedStyle(safeEl), w = window.innerWidth;
   var n = { w: w, t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
-  if (resNow > 0) n.b = 0; // 下は宿の外にあけてある
+  if (resNow > 0) { n.b = 0; n.t = Math.max(n.t, 28); } // 下は宿の外にあけてある。版317（けんじ「カメラのところもメニューが重なっちゃってる」）: 上も、カメラ・通知の帯の分（分からなければ 28px）を、いつもあけてもらう
   else { var ov = ifr && ifr.style.height ? Math.max(0, fz.h - window.innerHeight) : 0; n.b = Math.max(n.b, ov, navKeep(w)); }
   if (!sfMax || sfMax.w !== w) sfMax = n; else { ['t', 'r', 'l'].forEach(function (k) { if (n[k] > sfMax[k]) sfMax[k] = n[k]; }); sfMax.b = n.b; }
   try { localStorage.setItem('inn-safe', JSON.stringify(sfMax)); } catch (e) {}
