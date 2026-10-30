@@ -73,6 +73,9 @@ function holdHeight() {
   var ov = fz.h - h;
   if (ov > 0 && ov < 100 && ov > navKeep(w)) { try { localStorage.setItem('inn-navh', JSON.stringify({ w: w, h: ov })); } catch (e) {} } // ナビの帯が出て縮んだ分を覚える
   kb = ov >= 150; held = ov > 0 && !kb && portraitPhone();
+  // 版322b: 本当の全画面では、キーボードが出ても窓が縮まず、絵の上にかぶさるだけ（入力欄が隠れる）。見えている高さ（visualViewport）を見て、宿をキーボードの上までに縮める
+  var vv = window.visualViewport, kh = vv ? h - vv.height : 0;
+  if (!kb && kh >= 150) { kb = true; held = false; ifr.style.height = Math.round(vv.height) + 'px'; ifr.style.top = Math.round(vv.offsetTop) + 'px'; return; }
   if (!held) { ifr.style.height = ''; ifr.style.top = ''; if (lastSafe && ov <= 0) topFull = lastSafe.t; return; }
   // 帯が出て窓が縮んだ: 宿の大きさはそのまま。上が縮んだ分（通知の帯の分）だけ上へずらす
   var up = Math.min(ov, Math.max(topFull, AND ? 24 : 0));
@@ -80,6 +83,7 @@ function holdHeight() {
 }
 window.addEventListener('resize', holdHeight);
 window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
+if (window.visualViewport) { var vvT; window.visualViewport.addEventListener('resize', function () { holdHeight(); clearTimeout(vvT); vvT = setTimeout(sendSafe, 300); }); window.visualViewport.addEventListener('scroll', function () { if (kb) holdHeight(); }); }
 // 版292: マイク。Google の中の枠（宿）はマイクの許可がもらえないので、外のこのページで聞き取って、文字だけを宿に送る
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition, micR = null;
 function micTell(o) { o.inn = 'mic'; try { if (innWin) innWin.postMessage(o, '*'); } catch (e) {} }
