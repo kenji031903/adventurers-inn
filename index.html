@@ -76,14 +76,15 @@ function holdHeight0() {
   var w = window.innerWidth, h = window.innerHeight;
   // 版324b: キーボードが絵にかぶさる Chrome では、キーボードが出た瞬間に、窓の高さが一度キーボードの分だけ大きくなってから戻る（宿がガタッとなる）。
   // 同じ幅で急に200以上高くなったら、少しのあいだ宿の高さを前のままにする（1.5秒たっても高いままなら、本当に広くなったとみなす）
+  // 版324d: キーボードを閉じた瞬間には、逆に一度キーボードの分だけ小さくなってから戻る（宿が下で切れたままになった）。小さくなるほうも同じように前の高さのままにする
   if (vkOn()) {
-    if (w !== bz.w) { bz.w = w; bz.h = h; }
-    if (h - bz.h >= 200) {
+    if (w !== bz.w || !bz.h) { bz.w = w; bz.h = h; }
+    if (Math.abs(h - bz.h) >= 150) {
       ifr.style.height = bz.h + 'px'; ifr.style.top = '';
-      clearTimeout(bz.t); bz.t = setTimeout(function () { if (window.innerWidth === bz.w && window.innerHeight - bz.h >= 200) { bz.h = window.innerHeight; holdHeight(); } }, 1500);
+      clearTimeout(bz.t); bz.t = setTimeout(function () { if (window.innerWidth === bz.w && Math.abs(window.innerHeight - bz.h) >= 150) { bz.h = window.innerHeight; holdHeight(); } }, 1500);
       return;
     }
-    bz.h = h;
+    clearTimeout(bz.t); bz.h = h;
   }
   if (w !== fz.w) { fz.w = w; fz.h = h; } else if (h > fz.h) fz.h = h;
   var ov = fz.h - h;
