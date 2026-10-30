@@ -70,7 +70,9 @@ function sendSafe() {
 }
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight }, topFull = 0;
 var bz = { w: 0, h: 0, t: 0 };
-function holdHeight() {
+// 版324c: 窓が一瞬大きくなると、宿はイベントより先にその高さで描かれてしまうので、キーボードがかぶさる Chrome では、宿の高さをいつも数字で決めておく
+function holdHeight() { holdHeight0(); if (vkOn() && !ifr.style.height && bz.h > 0) ifr.style.height = bz.h + 'px'; }
+function holdHeight0() {
   var w = window.innerWidth, h = window.innerHeight;
   // 版324b: キーボードが絵にかぶさる Chrome では、キーボードが出た瞬間に、窓の高さが一度キーボードの分だけ大きくなってから戻る（宿がガタッとなる）。
   // 同じ幅で急に200以上高くなったら、少しのあいだ宿の高さを前のままにする（1.5秒たっても高いままなら、本当に広くなったとみなす）
