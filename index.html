@@ -55,23 +55,24 @@ function navKeep(w) { var nh = 0; try { var no = JSON.parse(localStorage.getItem
 function portraitPhone() { var w = window.innerWidth; return w < window.innerHeight && w < 700; }
 // 窓が画面の上から下までぜんぶ使えているか（このときは、帯が絵の上に乗る）
 function edgeToEdge() { return portraitPhone() && window.innerHeight >= (screen.height || 0) - 2; }
-var held = false, kb = false, lastSafe = null, kbOffAt = 0;
+var held = false, kb = false, lastSafe = null, kbOffAt = 0, sabKeep = null;
 function sendSafe() {
   if (!innWin || held) return; // 窓が少し縮んでいるあいだは、前の位置のまま（ボタンが動かないように）
+  if (vkOn() && bz.h && Math.abs(window.innerHeight - bz.h) >= 150) return; // v2.2: キーボードの出入りで窓が一瞬だけ大きさを変えたときも、前の位置のまま
   var cs = getComputedStyle(safeEl), w = window.innerWidth;
   var n = { t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
   if (AND && edgeToEdge()) {
     if (n.t < 1) n.t = 28; // カメラの高さを Chrome が教えてくれないときの予備
     if (n.b < 1) n.b = Math.min(64, navKeep(w) || 48); // ナビのボタンが透けて乗る場所の分だけ、下のボタン・入力欄を上に
   }
-  if (kb) n.b = (AND && isFs() && !vkOn()) ? Math.min(64, navKeep(w) || 48) : 0; // キーボードが出ているときは、ナビの帯はキーボードの下（本当の全画面では、ナビの帯がキーボードの下に透けて乗るので、その分だけ上に）
+  if (kb || vkH >= 100) n.b = AND ? (sabKeep != null ? sabKeep : lastSafe ? lastSafe.b : isFs() ? Math.min(64, navKeep(w) || 48) : 0) : 0; else sabKeep = n.b; // キーボードが出ているときは、ナビの帯はキーボードの下（本当の全画面では、ナビの帯がキーボードの下に透けて乗るので、その分だけ上に）
   lastSafe = n;
   try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
 }
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight }, topFull = 0;
-var bz = { w: 0, h: 0, t: 0 };
+var bz = { w: 0, h: 0, t: 0 }; var topKeep = ''; // v2.2: キーボードを出す前の宿の位置
 // 版324c: 窓が一瞬大きくなると、宿はイベントより先にその高さで描かれてしまうので、キーボードがかぶさる Chrome では、宿の高さをいつも数字で決めておく
-function holdHeight() { var kb0 = kb; holdHeight0(); if (vkOn() && !ifr.style.height && bz.h > 0) ifr.style.height = bz.h + 'px'; if (kb0 && !kb) kbOffAt = Date.now(); }
+function holdHeight() { var kb0 = kb, k0 = kbSent; holdHeight0(); if (vkOn() && !ifr.style.height && bz.h > 0) ifr.style.height = bz.h + 'px'; if (kb0 && !kb) kbOffAt = Date.now(); if (vkOn() && kbNow() !== k0) tellKb(); }
 function holdHeight0() {
   var w = window.innerWidth, h = window.innerHeight;
   // 版324b: キーボードが絵にかぶさる Chrome では、キーボードが出た瞬間に、窓の高さが一度キーボードの分だけ大きくなってから戻る（宿がガタッとなる）。
@@ -80,11 +81,15 @@ function holdHeight0() {
   if (vkOn()) {
     if (w !== bz.w || !bz.h) { bz.w = w; bz.h = h; }
     if (Math.abs(h - bz.h) >= 150) {
-      ifr.style.height = bz.h + 'px'; ifr.style.top = '';
-      clearTimeout(bz.t); bz.t = setTimeout(function () { if (window.innerWidth === bz.w && Math.abs(window.innerHeight - bz.h) >= 150) { bz.h = window.innerHeight; holdHeight(); } }, 1500);
+      ifr.style.height = (topKeep ? fz.h : bz.h) + 'px'; ifr.style.top = topKeep; // v2.2: 帯の分ずらしていたときは、そのまま
+      clearTimeout(bz.t); bz.t = setTimeout(function () { if (window.innerWidth === bz.w && Math.abs(window.innerHeight - bz.h) >= 150) { bz.h = window.innerHeight; holdHeight(); sendSafe(); } }, 1500);
       return;
     }
     clearTimeout(bz.t); bz.h = h;
+    // v2.2（2026-10-31 けんじ「キーボードでガタつく」）: キーボードを出し入れすると、ナビやステータスの帯が出て窓が少しだけ縮む（本当の全画面など）。
+    // 宿の高さも位置も変えない（帯はキーボードの下に乗るだけ）。縮んだ分は、キーボードの高さ（tellKb）に足して宿に知らせる
+    var d0 = fz.h - h;
+    if (w === fz.w && d0 > 0 && d0 < 150 && (vkH >= 100 || Date.now() - kbOffAt < 1200)) { kb = vkH >= 100; held = false; ifr.style.height = fz.h + 'px'; ifr.style.top = topKeep; return; }
   }
   if (w !== fz.w) { fz.w = w; fz.h = h; } else if (h > fz.h) fz.h = h;
   var ov = fz.h - h;
@@ -93,10 +98,10 @@ function holdHeight0() {
   // 版322b: 本当の全画面では、キーボードが出ても窓が縮まず、絵の上にかぶさるだけ（入力欄が隠れる）。見えている高さ（visualViewport）を見て、宿をキーボードの上までに縮める
   var vv = window.visualViewport, kh = vv ? h - vv.height : 0;
   if (!vkOn() && !kb && kh >= 150) { kb = true; held = false; ifr.style.height = Math.round(vv.height) + 'px'; ifr.style.top = Math.round(vv.offsetTop) + 'px'; return; }
-  if (!held) { ifr.style.height = ''; ifr.style.top = ''; if (lastSafe && ov <= 0) topFull = lastSafe.t; return; }
+  if (!held) { ifr.style.height = ''; ifr.style.top = ''; topKeep = ''; if (lastSafe && ov <= 0) topFull = lastSafe.t; return; }
   // 帯が出て窓が縮んだ: 宿の大きさはそのまま。上が縮んだ分（通知の帯の分）だけ上へずらす
   var up = Math.min(ov, Math.max(topFull, AND ? 24 : 0));
-  ifr.style.height = fz.h + 'px'; ifr.style.top = (-up) + 'px';
+  ifr.style.height = fz.h + 'px'; ifr.style.top = topKeep = (-up) + 'px';
 }
 window.addEventListener('resize', holdHeight);
 window.addEventListener('resize', function () { setTimeout(sendSafe, 300); });
@@ -106,7 +111,10 @@ if (window.visualViewport) { var vvT; window.visualViewport.addEventListener('re
 // （Chrome の VirtualKeyboard。使えない Chrome では、これまでどおり宿を縮める）
 var VK = navigator.virtualKeyboard, vkH = 0;
 function vkOn() { return !!(VK && VK.overlaysContent); }
-function tellKb() { try { if (innWin) innWin.postMessage({ inn: 'kb', h: vkH }, '*'); } catch (e) {} }
+// v2.2: 宿の下の端からキーボードの上の端まで（宿がナビの帯の下まで伸びているときは、その分も足す）
+var kbSent = 0;
+function kbNow() { if (!vkH) return 0; var d = Math.round(ifr.getBoundingClientRect().bottom - window.innerHeight); return vkH + (d > 0 && d < 150 ? d : 0); }
+function tellKb() { kbSent = kbNow(); try { if (innWin) innWin.postMessage({ inn: 'kb', h: kbSent }, '*'); } catch (e) {} }
 if (VK && 'overlaysContent' in VK) {
   try { VK.overlaysContent = true; } catch (e) {}
   VK.addEventListener('geometrychange', function () {
