@@ -30,7 +30,12 @@ iframe{position:fixed;left:0;top:0;width:100%;height:100%;border:0;background:#1
 </style>
 </head>
 <body>
-<iframe src="https://script.google.com/macros/s/AKfycbwSYJ97QgF457O8zIDp8kYtMeJY4LQoUuO881Rh_1uIOnZYdgi2YeyReQTZPn0HHahoDg/exec" allow="clipboard-write; fullscreen; autoplay; microphone *" allowfullscreen title="冒険者の宿"></iframe>
+<iframe id="inn" src="https://script.google.com/macros/s/AKfycbwSYJ97QgF457O8zIDp8kYtMeJY4LQoUuO881Rh_1uIOnZYdgi2YeyReQTZPn0HHahoDg/exec" allow="clipboard-write; fullscreen; autoplay; microphone *" allowfullscreen title="冒険者の宿"></iframe>
+<script>
+// v5.11（2026-11-01 けんじ「ホームの画面に小さな宿を」）: 玄関の URL のうしろの ?open=talk などを、中の宿へそのまま渡す（ホームのウィジェットのボタンから、その画面で開くため）
+// 通すのは ?open=英小文字と_（20字まで）だけ。ほかの文字は渡さない
+(function(){var f=document.getElementById('inn'),q=location.search;if(f&&/^\?open=[a-z_]{1,20}$/.test(q))f.src=f.src+q;})();
+</script>
 <div id="start"><b>冒険者の宿</b><span>ようこそ！</span><small>Chrome の右上の ︙ から ホーム画面に追加 をすると、次からはアイコンで、いつも画面いっぱいで開くよ（全画面の案内も出ないよ）</small><div class="row"><button id="stGo">このまま開く</button><button id="stFs" class="sub">全画面で開く</button></div></div>
 <button id="fs" aria-label="全画面" title="全画面">⛶</button>
 <a id="help">更新中だよ…</a>
