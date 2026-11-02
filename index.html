@@ -3,7 +3,7 @@
 <head>
 <!-- 版322: 本当の全画面（帯は絵の上に透けて乗る。宿の大きさは動かさない） -->
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=overlays-content">
 <title>冒険者の宿</title>
 <meta name="theme-color" content="#120c07">
 <link rel="manifest" href="manifest.webmanifest">
@@ -102,7 +102,8 @@ function holdHeight0() {
   kb = ov >= 150 || vkH >= 100; held = ov > 0 && !kb && portraitPhone();
   // 版322b: 本当の全画面では、キーボードが出ても窓が縮まず、絵の上にかぶさるだけ（入力欄が隠れる）。見えている高さ（visualViewport）を見て、宿をキーボードの上までに縮める
   var vv = window.visualViewport, kh = vv ? h - vv.height : 0;
-  if (!vkOn() && !kb && kh >= 150) { kb = true; held = false; ifr.style.height = Math.round(vv.height) + 'px'; ifr.style.top = Math.round(vv.offsetTop) + 'px'; return; }
+  // v5.17: 縮めると、宿の履歴が途中で止まって新しい行が見えなくなっていた。宿の大きさはそのままにして、キーボードの高さだけを宿に知らせる（宿は入力の段だけを持ち上げる）
+  if (!vkOn()) { var vk2 = !kb && kh >= 150 ? Math.round(kh) : 0; if (vk2 !== vvKb) { vvKb = vk2; setTimeout(tellKb, 0); } if (vk2) { kb = true; held = false; ifr.style.height = ''; ifr.style.top = ''; return; } }
   if (!held) { ifr.style.height = ''; ifr.style.top = ''; topKeep = ''; if (lastSafe && ov <= 0) topFull = lastSafe.t; return; }
   // 帯が出て窓が縮んだ: 宿の大きさはそのまま。上が縮んだ分（通知の帯の分）だけ上へずらす
   var up = Math.min(ov, Math.max(topFull, AND ? 24 : 0));
@@ -117,8 +118,8 @@ if (window.visualViewport) { var vvT; window.visualViewport.addEventListener('re
 var VK = navigator.virtualKeyboard, vkH = 0;
 function vkOn() { return !!(VK && VK.overlaysContent); }
 // v2.2: 宿の下の端からキーボードの上の端まで（宿がナビの帯の下まで伸びているときは、その分も足す）
-var kbSent = 0;
-function kbNow() { if (!vkH) return 0; var d = Math.round(ifr.getBoundingClientRect().bottom - window.innerHeight); return vkH + (d > 0 && d < 150 ? d : 0); }
+var kbSent = 0, vvKb = 0;
+function kbNow() { var k = vkH || vvKb; if (!k) return 0; var d = Math.round(ifr.getBoundingClientRect().bottom - window.innerHeight); return k + (d > 0 && d < 150 ? d : 0); }
 function tellKb() { kbSent = kbNow(); try { if (innWin) innWin.postMessage({ inn: 'kb', h: kbSent }, '*'); } catch (e) {} }
 if (VK && 'overlaysContent' in VK) {
   try { VK.overlaysContent = true; } catch (e) {}
