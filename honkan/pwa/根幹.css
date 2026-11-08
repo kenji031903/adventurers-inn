@@ -131,6 +131,9 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの頭 { display: flex; flex-direction: column; gap: 6px; padding: calc(8px + var(--本館-safe-t)) 8px 8px 10px; color: #f6e7c4; text-shadow: 0 1px 2px #000; background: linear-gradient(#ffffff1a, #0000004d), var(--本館-木目) center / 220px, #7a5230; border-bottom: 2px solid #2e1a0b; box-shadow: 0 3px 8px #2e1a0b55; }
 .本館-引き出しの頭の上 { display: flex; align-items: center; gap: 6px; }
 .本館-引き出しの題 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; font-size: 14px; letter-spacing: .03em; }
+.本館-引き出しの週 { flex: none; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.28); color: #f6e7c4; letter-spacing: .02em; }
+.本館-引き出しの週[data-警告="1"] { background: #c8352b; color: #fff; box-shadow: 0 0 6px rgba(200, 53, 43, 0.6); }
+.本館-引き出しの週[hidden] { display: none; }
 .本館-引き出しの窓たち { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .本館-引き出しの様子 { margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 244, 214, 0.9); color: #5a4630; font-size: 12px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 .本館-引き出しの様子[hidden] { display: none; }
@@ -145,12 +148,31 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの列 { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 12px 12px; display: flex; flex-direction: column; gap: 9px; }
 .本館-引き出しの列[hidden] { display: none; }
 .本館-引き出しの空 { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; white-space: pre-wrap; }
-.本館-引き出しの空:not(:only-child) { display: none; }
-.本館-引き出しの泡 { max-width: 86%; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: #fffdf6; border: 1.5px solid #c8ab6c; box-shadow: 0 2px 4px #8a6a3c26; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; align-self: flex-start; color: #4a3520; content-visibility: auto; contain-intrinsic-size: auto 48px; } 
+.本館-引き出しの空:not(:nth-last-child(2)) { display: none; } 
+.本館-引き出しの前 { align-self: center; min-height: var(--本館-小ボタン); padding: 6px 16px; border: 1.5px solid #c8ab6c; border-radius: 999px; background: #fbf1da; color: #6e4a24; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+.本館-引き出しの前[hidden] { display: none; }
+.本館-引き出しの前:active { transform: translateY(2px); }
+.本館-引き出しの新着 { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); min-height: var(--本館-小ボタン); padding: 6px 16px; border: 2px solid #8a6a3c; border-radius: 999px; background: #f6dc9a; color: #4a3520; font: inherit; font-size: 14px; font-weight: 700; box-shadow: 0 2px 6px #8a6a3c55; cursor: pointer; touch-action: manipulation; white-space: nowrap; }
+.本館-引き出しの新着[hidden] { display: none; }
+.本館-引き出しの泡 { max-width: 86%; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: #fffdf6; border: 1.5px solid #c8ab6c; box-shadow: 0 2px 4px #8a6a3c26; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; align-self: flex-start; color: #4a3520; } 
 .本館-引き出しの泡 b { display: block; font-size: 12px; color: #a0602a; letter-spacing: .04em; }
 .本館-引き出しの泡[data-だれ="けんじ"] { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: linear-gradient(#f9e2ae, #f0cd84); border-color: #b98a3e; color: #3b2a18; }
 .本館-引き出しの泡[data-だれ="知らせ"] { align-self: center; background: transparent; border: 0; box-shadow: none; color: #8a6a3c; font-size: 13px; }
 .本館-引き出しの泡[data-待ち="1"] .本館-引き出しの文 { color: #9a8462; }
+.本館-引き出しの泡[data-裏="1"] { align-self: center; max-width: 94%; padding: 6px 10px; border-radius: 10px; white-space: normal; font-size: 13px; line-height: 1.45; }
+.本館-引き出しの折りたたみ { width: 100%; }
+.本館-引き出しの見出し { cursor: pointer; font-weight: 700; list-style: none; user-select: none; -webkit-user-select: none; min-height: 32px; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; }
+.本館-引き出しの見出し::-webkit-details-marker { display: none; }
+.本館-引き出しの見出し::before { content: '▶'; font-size: 10px; flex: none; transition: transform .18s; }
+.本館-引き出しの折りたたみ[open] > .本館-引き出しの見出し::before { transform: rotate(90deg); }
+.本館-引き出しの折りたたみ中身 { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #0000002a; white-space: pre-wrap; word-break: break-word; max-height: 50vh; overflow: auto; }
+.本館-引き出しの訳 { margin-bottom: 6px; padding: 6px 8px; border-radius: 6px; background: #ffffffa6; color: #3b2a18; }
+.本館-引き出しの泡[data-種="作業係の知らせ"] { background: #f1f8ee; border-color: #3d8a4a; color: #264a2f; }
+.本館-引き出しの泡[data-種="作業係の知らせ"] .本館-引き出しの見出し { color: #215c2d; }
+.本館-引き出しの泡[data-種="引き継ぎの要約"] { background: #f6f1fb; border-color: #9b7ec8; color: #3d2b5c; }
+.本館-引き出しの泡[data-種="引き継ぎの要約"] .本館-引き出しの見出し { color: #553285; }
+.本館-引き出しの泡[data-種="ほかの裏の知らせ"] { background: #f2f3f5; border-color: #9aa0a6; color: #44484d; }
+.本館-引き出しの泡[data-種="ほかの裏の知らせ"] .本館-引き出しの見出し { color: #555b62; }
 .本館-引き出しの泡[data-光る="1"] { box-shadow: 0 0 0 3px #f0a83c; transition: box-shadow .4s; } 
 .本館-引き出しの札 { background: #fffdf6; border: 2px solid #e0b040; border-radius: 12px; padding: 10px 12px; box-shadow: 0 2px 6px #8a6a3c33, inset 0 0 0 1px #fff6dc; }
 .本館-引き出しの札[data-済み="1"] { border-color: #c8ab6c; opacity: .8; }
@@ -181,9 +203,15 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの貯め札の消す { flex: none; width: 40px; min-height: 40px; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 15px; padding: 0; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの荷 { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 12px 0; }
 .本館-引き出しの荷[hidden] { display: none; }
-.本館-引き出しの荷の品 { border: 1.5px solid #c8ab6c; border-radius: 12px; background: #fffdf6; color: #4a3520; font: inherit; font-size: 13px; padding: 4px 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.本館-引き出しの下 { padding: 8px 12px calc(10px + var(--本館-safe-b)); border-top: 2px solid #8a6a3c; background: linear-gradient(#f6e7c4, #efdcb2); box-shadow: 0 -2px 8px #8a6a3c33; }
-.本館-引き出しの欄 { width: 100%; box-sizing: border-box; resize: none; border: 1.5px solid #c8ab6c; border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 16px; background: #fffdf6; color: #4a3520; max-height: 30vh; }
+.本館-引き出しの描く { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; gap: 6px; padding: 8px 8px calc(8px + var(--本館-safe-b)); background: rgba(30, 22, 12, .92); }
+.本館-引き出しの描く-道具 { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.本館-引き出しの描く-札 { min-height: 44px; min-width: 76px; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #fffdf6; color: #4a3520; font: inherit; font-size: 15px; padding: 6px 12px; }
+.本館-引き出しの描く-札[aria-pressed="true"] { background: #e8261c; border-color: #e8261c; color: #fff; }
+.本館-引き出しの描く-済 { background: #4a7a3a; border-color: #4a7a3a; color: #fff; }
+.本館-引き出しの描く-絵 { flex: 1 1 auto; min-height: 0; width: 100%; object-fit: contain; touch-action: none; background: #000; border-radius: 8px; }
+.本館-引き出しの荷の品 {border: 1.5px solid #c8ab6c; border-radius: 12px; background: #fffdf6; color: #4a3520; font: inherit; font-size: 13px; padding: 4px 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.本館-引き出しの下 { position: relative; padding: 6px 6px calc(8px + var(--本館-safe-b)); border-top: 2px solid #8a6a3c; background: linear-gradient(#f6e7c4, #efdcb2); box-shadow: 0 -2px 8px #8a6a3c33; }
+.本館-引き出しの欄 { width: 100%; box-sizing: border-box; resize: none; border: 1.5px solid #c8ab6c; border-radius: 10px; padding: 7px 8px; font: inherit; font-size: 16px; line-height: 1.45; background: #fffdf6; color: #4a3520; max-height: calc(3 * 1.45em + 16px); overflow-y: auto; } 
 .本館-引き出しの欄:focus { outline: none; border-color: #8a6a3c; box-shadow: 0 0 0 2px #e0b04066; }
 .本館-引き出しの並び { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .本館-引き出しのすき間 { flex: 1; }
@@ -192,5 +220,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの送る { background: linear-gradient(#ffffff40, #00000026), #c9902c; border-color: #5a3a10; box-shadow: inset 0 1px 0 #ffffff60, 0 2px 0 #5a3a10, 0 0 8px #e0b04099; }
 .本館-引き出しの下の板 { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px calc(12px + var(--本館-safe-b)); background: #fffaf0; border-top: 2px solid #8a6a3c; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 16px #2e1a0b44; }
 .本館-引き出しの下の板[hidden] { display: none; }
+.本館-引き出しの行き先 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.本館-引き出しの行き先札 { min-width: 0; padding: 0 4px; font-size: 13px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.本館-引き出しの行き先札[aria-pressed="true"] { background: #f6dc9a; border-color: #8a6a3c; color: #3b2a18; text-shadow: none; box-shadow: inset 0 0 0 2px #e0b040; font-weight: 700; }
 .本館-引き出しの品 { min-height: var(--本館-ボタン); border: 2px solid #2e1a0b; border-radius: 10px; color: #f6e7c4; text-shadow: 0 1px 2px #000; background: linear-gradient(#ffffff26, #00000040), var(--本館-木目) center / 220px, #7a5230; box-shadow: inset 0 1px 0 #ffffff40, 0 3px 0 #2e1a0b; font: inherit; font-size: 16px; text-align: left; padding: 0 16px; cursor: pointer; }
 .本館-引き出しの控え { text-align: center; color: #5a4128; text-shadow: none; background: #f3e3bf; border-color: #8a6a3c; box-shadow: none; }
