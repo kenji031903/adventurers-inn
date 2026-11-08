@@ -53,7 +53,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-席[data-席="下4"] { right: calc(16px + var(--本館-safe-r)); }
 .本館-席[data-席="メニュー"] { width: var(--本館-ボタン); height: var(--本館-ボタン); right: calc(16px + var(--本館-safe-r)); bottom: calc(var(--本館-帯) + 24px); }
 :root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-席[data-席^="下"], :root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-席[data-席="メニュー"] { visibility: hidden; pointer-events: none; }
-:root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-塊の箱 { visibility: hidden; pointer-events: none; }
+:root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-塊の箱 { scale: .55; transform-origin: 0 100%; opacity: .92; }
 .本館-キャラ { position: absolute; right: calc(84px + var(--本館-safe-r)); bottom: calc(var(--本館-帯) + 8px); font-size: 56px; line-height: 1; }
 .本館-キャラ[hidden] { display: none; }
 .本館-吹き出し { position: absolute; left: 16px; right: 16px; bottom: calc(var(--本館-帯) + 96px); margin: 0 auto; max-width: 480px; background: var(--本館-面); border: 1px solid var(--本館-枠); border-radius: var(--本館-丸み); padding: 10px 14px; box-shadow: var(--本館-影); }
@@ -66,6 +66,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-ページの中 { position: relative; flex: 1; overflow: auto; }
 .本館-ページ[data-全画面] > .本館-ページの頭 { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .本館-ページ[data-透ける] { background: transparent; }
+.本館-ページ[data-壁] { background-color: var(--本館-床); background-image: linear-gradient(color-mix(in srgb, var(--本館-床) 70%, transparent), color-mix(in srgb, var(--本館-床) 70%, transparent)), var(--本館-壁); background-size: auto, 420px; background-repeat: repeat; }
 .本館-知らせ { position: absolute; left: 50%; transform: translateX(-50%); top: calc(64px + var(--本館-safe-t)); max-width: calc(100% - 32px); background: var(--本館-文字); color: var(--本館-床); border-radius: 20px; padding: 8px 16px; font-size: 14px; box-shadow: var(--本館-影); }
 .本館-知らせ[hidden] { display: none; }
 .本館-入力 { position: absolute; left: 0; right: 0; bottom: calc(var(--本館-kb) + var(--本館-帯));  display: flex; gap: 8px; padding: 8px 16px; background: var(--本館-面); border-top: 1px solid var(--本館-枠); box-sizing: border-box; }
@@ -131,6 +132,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの頭の上 { display: flex; align-items: center; gap: 6px; }
 .本館-引き出しの題 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; font-size: 14px; letter-spacing: .03em; }
 .本館-引き出しの窓たち { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.本館-引き出しの様子 { margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 244, 214, 0.9); color: #5a4630; font-size: 12px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.本館-引き出しの様子[hidden] { display: none; }
 .本館-引き出しの窓札 { position: relative; height: 40px; padding: 0 6px; font: inherit; font-size: 14px; font-weight: 700; color: #5a4128; text-shadow: none; border: 2px solid #2e1a0b; border-radius: 8px; background: #f3e3bf; box-shadow: inset 0 -2px 0 #0000002e; cursor: pointer; white-space: nowrap; overflow: visible; touch-action: manipulation; }
 .本館-引き出しの窓札[aria-pressed="true"] { background: #fffaf0; color: #3b2a18; box-shadow: inset 0 0 0 2px #e0b040, 0 0 8px #e0b04088; }
 .本館-引き出しの窓札 .本館-印 { position: absolute; top: -7px; right: -5px; min-width: 20px; height: 20px; border-radius: 10px; background: #c8352b; border: 1.5px solid #fffaf0; color: #fff; font-size: 11px; line-height: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; font-family: system-ui, sans-serif; }
@@ -143,7 +146,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの列[hidden] { display: none; }
 .本館-引き出しの空 { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; white-space: pre-wrap; }
 .本館-引き出しの空:not(:only-child) { display: none; }
-.本館-引き出しの泡 { max-width: 86%; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: #fffdf6; border: 1.5px solid #c8ab6c; box-shadow: 0 2px 4px #8a6a3c26; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; align-self: flex-start; color: #4a3520; }
+.本館-引き出しの泡 { max-width: 86%; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: #fffdf6; border: 1.5px solid #c8ab6c; box-shadow: 0 2px 4px #8a6a3c26; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; align-self: flex-start; color: #4a3520; content-visibility: auto; contain-intrinsic-size: auto 48px; } 
 .本館-引き出しの泡 b { display: block; font-size: 12px; color: #a0602a; letter-spacing: .04em; }
 .本館-引き出しの泡[data-だれ="けんじ"] { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: linear-gradient(#f9e2ae, #f0cd84); border-color: #b98a3e; color: #3b2a18; }
 .本館-引き出しの泡[data-だれ="知らせ"] { align-self: center; background: transparent; border: 0; box-shadow: none; color: #8a6a3c; font-size: 13px; }

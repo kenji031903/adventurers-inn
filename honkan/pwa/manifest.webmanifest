@@ -4,7 +4,8 @@
   "short_name": "本館すぐ",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "background_color": "#3e2614",
   "theme_color": "#3e2614",
   "icons": [
