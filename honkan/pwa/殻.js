@@ -105,7 +105,7 @@
   }
   // 預けたときに本館へ返す形（本館は「届いた」と同じように描く）
   var 書く = {
-    '根幹/引き出しで話す': { 文: '（電波がないので、この端末に預けたよ。つながったら届けるね）' },
+    '根幹/引き出しで話す': { 文: '（宿とまだつながっていないので、この端末に預けたよ。つながったら届けるね）' },
     '根幹/引き出しの答え': { 預けた: true },
     '郵便箱/送る': { 預けた: true },
     '朝の作戦会議/タスクを済に': { 預けた: true },
@@ -178,6 +178,7 @@
       '<section><h2>宿の本番とのつながり（橋）</h2><p class="apb-小" data-id="橋"></p><p class="apb-小" data-id="列"></p></section>' +
       '<section><h2>クエストの掲示板</h2><ul data-id="掲示板"></ul></section>' +
       '<section data-区画="書庫"><h2>知識の書庫（本文はこの端末の中だけ）</h2><ul class="apb-書庫" data-id="書庫"></ul><div class="apb-本" data-id="本"></div></section>' +
+      '<section><button class="apb-本番" data-id="更新">🔄 宿を新しくする</button></section>' +
       '<section><button class="apb-本番" data-id="本番">宿の本番を開く（つながっているときだけ）</button></section>' +
       '<section><p class="apb-小">装い: <span data-id="モード"></span><br><span data-id="版"></span></p>' +
       '<p class="apb-小">宿の鍵（パソコンで作った長い合言葉。この端末だけにしまう。掲示板と書庫の分だけに使う）: <span data-id="鍵の様子"></span></p>' +
@@ -195,6 +196,7 @@
       if (手もとの箱.隠すか('書庫', モード)) $('本').textContent = '';
       Object.keys(前の写し).forEach(function (k) { 区画を描く(k, 前の写し[k]); });
     } };
+    $('更新').onclick = 新しくする;
     $('本番').onclick = function () {
       if (!navigator.onLine) { 帯('宿の本番はつながっているときだけ開くよ', '黄'); return; }
       location.href = 設定.本番の宿;
@@ -210,6 +212,41 @@
     板.描く();
   }
   var 帯の今 = { t: '…', 色: '' }, 開くまで = 0, 番頭の版 = '';
+
+  // ---- 🔄 宿を新しくする（殻6 2026-11-09 頼み99: 閉じて開き直しても新しくならない、をボタン1つで）
+  // たとえ: 番頭さんの棚の殻と部品だけ空にして、配り元へ新しい版を見に行かせ、開き直す（絵・曲・声の棚と、預けた言葉はそのまま）
+  function 札を出す(t, 消す) {
+    var el = document.getElementById('apb-札');
+    if (!el) { el = document.createElement('div'); el.id = 'apb-札'; el.setAttribute('role', 'status'); el.style.cssText = 'position:fixed;left:16px;right:16px;bottom:96px;z-index:99999;padding:12px 14px;border-radius:12px;background:#3e2614;color:#fff8ec;font:15px/1.5 sans-serif;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3)'; document.body.appendChild(el); }
+    el.textContent = t;
+    if (消す) setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 消す);
+    return el;
+  }
+  var 新しくしている = false;
+  function 新しくする() {
+    if (新しくしている) return;
+    if (!navigator.onLine) { 札を出す('電波がないので、つながってからもう一度押してね', 4000); return; }
+    新しくしている = true; 札を出す('新しい版を取りに行っているよ…');
+    var 棚を空に = ('caches' in window) ? caches.keys().then(function (ks) {
+      return Promise.all(ks.filter(function (k) { return k.indexOf('honkan-') === 0 && k.indexOf('honkan-絵-') !== 0 && k.indexOf('honkan-一度-') !== 0; }).map(function (k) { return caches.delete(k); }));
+    }) : Promise.resolve();
+    var 番頭に頼む = ('serviceWorker' in navigator) ? navigator.serviceWorker.getRegistration().then(function (r) {
+      if (!r) return;
+      return r.update().then(function () {
+        var w = r.installing || r.waiting; if (!w) return;
+        return new Promise(function (ok) { var tm = setTimeout(ok, 15000); w.addEventListener('statechange', function () { if (w.state === 'activated' || w.state === 'redundant') { clearTimeout(tm); ok(); } }); });
+      });
+    }) : Promise.resolve();
+    Promise.all([棚を空に, 番頭に頼む]).catch(function () { /* 開き直せば配り元から取る */ }).then(function () {
+      札を出す('新しくするね。開き直すよ'); setTimeout(function () { location.reload(); }, 300);
+    });
+  }
+  // 開いたとき・画面に戻ったとき、番頭さんに新しい版がないか見に行ってもらう（届いたら 今すぐ使う の札）
+  function 版を見に行く() {
+    if (!('serviceWorker' in navigator) || !navigator.onLine) return;
+    navigator.serviceWorker.getRegistration().then(function (r) { if (r) return r.update(); }).catch(function () { /* 次の機会に */ });
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') 版を見に行く(); });
   function 帯(t, 色) { 帯の今 = { t: t, 色: 色 || '' }; if (!板) return; var b = 板.$('帯'); b.textContent = t; b.setAttribute('data-色', 色 || ''); }
   var 描く = {
     '掲示板': function (v) { var ul = 板.$('掲示板'); ul.textContent = ''; (v || []).forEach(function (x) { var li = document.createElement('li'); li.textContent = x; ul.appendChild(li); }); },
@@ -273,6 +310,7 @@
   }, function (d) {
     道具 = d; モード = d.モード.今();
     d.席.置く({ 名前: 'アプリ版', 絵: '📱', 分類: '設定', 押す: 板を開く });
+    d.席.置く({ 名前: '宿を新しく', 絵: '🔄', 分類: '設定', 押す: 新しくする });
     d.掲示板.聞く('モード', function (x) { モード = (x && x.今) || d.モード.今(); 板を描き直す(); });
   });
   var 帳面 = (window.HONKAN_LEDGER || []).concat(['アプリ版: v1']);
@@ -284,7 +322,9 @@
   window.addEventListener('online', function () { 裏で読む(); 送り待ちを流す(); });
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(function () { /* 番頭さんなしでも動く */ });
-    navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data && ev.data.番頭 === '新しい版') { 番頭の版 = '新しい版（' + ev.data.版 + '）を覚えたよ。次に開いたときから使うね'; if (板) 板.$('版').textContent = 番頭の版; } });
+    navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data && ev.data.番頭 === '新しい版') { 番頭の版 = '新しい版（' + ev.data.版 + '）を覚えたよ。次に開いたときから使うね'; if (板) 板.$('版').textContent = 番頭の版;
+      if (!新しくしている && navigator.serviceWorker.controller) { var 札 = 札を出す('宿の新しい版が届いたよ。タップで今すぐ使う', 12000); 札.style.cursor = 'pointer'; 札.onclick = function () { location.reload(); }; } } });
+    navigator.serviceWorker.ready.then(版を見に行く).catch(function () { /* なし */ });
   }
   window.本館の殻 = {
     様子: function () { return { 橋: 橋.様子(), モード: モード, 写し: Object.keys(前の写し), 鍵: !!設定.鍵, 写しの数: 写しの数, 開くまで: 開くまで }; },

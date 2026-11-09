@@ -5,8 +5,8 @@
 // - 曲・声・動く絵（.mp3 .m4a .ogg .mp4 .webm）: 一度の棚（殻3 頼み16。1回取ったら手もとから。Range も棚から切って返す）
 // - データ（GAS）: 番頭さんは触らない（画面が手もとの箱=IndexedDB に写しをしまう）。書庫の本文もここを通らない
 // 下の3行は 殻の組み立て.js が書き換える（部品の中身から作った印・部品の一覧・絵の一覧から作った印）
-const 版 = "shell-3-6d38aa14";
-const 殻 = ["./","index.html","殻.js","手もとの箱.js","根幹.js","根幹.css","帳面.js","manifest.webmanifest","icon.svg","../塊/ハンズフリー/ハンズフリー.js","../塊/チャット/チャット.js","../塊/マスコット/マスコット.js","../塊/部屋と階/部屋と階.js","../塊/BGM/BGM.js","../塊/クエストの掲示板/クエストの掲示板.js","../塊/質問の板/質問の板.js","../塊/占い/占い.js","../塊/パーティ編成/パーティ編成.js","../塊/試着室/試着室.js","../塊/ミストの伝説/ミストの伝説.js","../塊/ファミコン/ファミコン.js","../塊/副業の管理画面/副業の管理画面.js","../塊/朝の作戦会議/朝の作戦会議.js","../塊/手紙箱/手紙箱.js","../塊/個室/個室.js","../塊/リラックスルーム/リラックスルーム.js","../塊/郵便箱/郵便箱.js","../塊/知識の書庫/知識の書庫.js","../塊/プロフィール/プロフィール.js","../塊/絵日記/絵日記.js"];
+const 版 = "shell-3-a84b080a";
+const 殻 = ["./","index.html","殻.js","手もとの箱.js","根幹.js","根幹.css","帳面.js","manifest.webmanifest","icon.svg","../塊/ハンズフリー/ハンズフリー.js","../塊/チャット/チャット.js","../塊/マスコット/マスコット.js","../塊/部屋と階/部屋と階.js","../塊/BGM/BGM.js","../塊/クエストの掲示板/クエストの掲示板.js","../塊/質問の板/質問の板.js","../塊/占い/占い.js","../塊/パーティ編成/パーティ編成.js","../塊/試着室/試着室.js","../塊/ミストの伝説/ミストの伝説.js","../塊/ファミコン/ファミコン.js","../塊/副業の管理画面/副業の管理画面.js","../塊/朝の作戦会議/朝の作戦会議.js","../塊/手紙箱/手紙箱.js","../塊/個室/個室.js","../塊/リラックスルーム/リラックスルーム.js","../塊/郵便箱/郵便箱.js","../塊/知識の書庫/知識の書庫.js","../塊/プロフィール/プロフィール.js","../塊/絵日記/絵日記.js","../塊/予定とやること/予定とやること.js","../塊/家計簿/家計簿.js"];
 const 絵の版 = "e-fab39ee5";
 const 殻の棚 = 'honkan-' + 版;
 const 絵の棚 = 'honkan-絵-' + 絵の版;
@@ -15,7 +15,8 @@ const 絵の棚 = 'honkan-絵-' + 絵の版;
 const 一度の棚 = 'honkan-一度-1';
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(殻の棚).then((c) => c.addAll(殻)).then(() => self.skipWaiting()));
+  // 殻6（2026-11-09 頼み99）: 古い写し（ブラウザの手もと）を使わず、かならず配り元から取り直す
+  e.waitUntil(caches.open(殻の棚).then((c) => c.addAll(殻.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
@@ -26,7 +27,7 @@ self.addEventListener('activate', (e) => {
 
 function 棚から出す(e, 棚, 鍵) {
   return caches.open(棚).then((c) => c.match(鍵, { ignoreSearch: true }).then((hit) => {
-    const 取り直す = fetch(e.request).then((r) => { if (r.ok && r.status === 200) c.put(鍵, r.clone()).catch(() => {}); return r; });
+    const 取り直す = fetch(e.request, { cache: 'no-cache' }).then((r) => { if (r.ok && r.status === 200) c.put(鍵, r.clone()).catch(() => {}); return r; });
     if (hit) { e.waitUntil(取り直す.catch(() => {})); return hit; }
     return 取り直す;
   }));
