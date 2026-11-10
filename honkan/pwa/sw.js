@@ -5,7 +5,7 @@
 // - 曲・声・動く絵（.mp3 .m4a .ogg .mp4 .webm）: 一度の棚（殻3 頼み16。1回取ったら手もとから。Range も棚から切って返す）
 // - データ（GAS）: 番頭さんは触らない（画面が手もとの箱=IndexedDB に写しをしまう）。書庫の本文もここを通らない
 // 下の3行は 殻の組み立て.js が書き換える（部品の中身から作った印・部品の一覧・絵の一覧から作った印）
-const 版 = "shell-3-dfa9b2f8";
+const 版 = "shell-3-baac3db3";
 const 殻 = ["./","index.html","殻.js","手もとの箱.js","根幹.js","根幹.css","帳面.js","manifest.webmanifest","icon.svg","../塊/ハンズフリー/ハンズフリー.js","../塊/チャット/チャット.js","../塊/マスコット/マスコット.js","../塊/部屋と階/部屋と階.js","../塊/BGM/BGM.js","../塊/クエストの掲示板/クエストの掲示板.js","../塊/質問の板/質問の板.js","../塊/占い/占い.js","../塊/パーティ編成/パーティ編成.js","../塊/試着室/試着室.js","../塊/ミストの伝説/ミストの伝説.js","../塊/ファミコン/ファミコン.js","../塊/副業の管理画面/副業の管理画面.js","../塊/朝の作戦会議/朝の作戦会議.js","../塊/手紙箱/手紙箱.js","../塊/個室/個室.js","../塊/リラックスルーム/リラックスルーム.js","../塊/郵便箱/郵便箱.js","../塊/知識の書庫/知識の書庫.js","../塊/プロフィール/プロフィール.js","../塊/絵日記/絵日記.js","../塊/予定とやること/予定とやること.js","../塊/家計簿/家計簿.js"];
 const 絵の版 = "e-df0dadac";
 const 殻の棚 = 'honkan-' + 版;
@@ -54,6 +54,19 @@ function 切って出す(r, 範囲) {
     return new Response(b.slice(a, z + 1), { status: 206, headers: { 'Content-Type': r.headers.get('Content-Type') || 'application/octet-stream', 'Content-Range': 'bytes ' + a + '-' + z + '/' + n, 'Content-Length': String(z - a + 1), 'Accept-Ranges': 'bytes' } });
   });
 }
+// ---- バックグラウンド同期（2026-11-10 頼み: 送ってすぐアプリを閉じても届くように）
+// 画面が 'honkan-送り待ち' を頼んでおくと、電波が戻ったときにブラウザが番頭さんを起こす。番頭さんは箱の送り待ちを古い順に JSON の口へ送る
+// 鍵は画面が箱の '写し' に写したもの（番頭さんは localStorage を読めない）。届かなかったら投げて、ブラウザにもう一度起こしてもらう
+try { importScripts('手もとの箱.js'); } catch (e) { /* 箱がないときは同期だけ止まる（画面を開いたときに橋で流れる） */ }
+self.addEventListener('sync', (e) => {
+  if (e.tag !== 'honkan-送り待ち' || !self.手もとの箱) return;
+  const 箱P = self.手もとの箱.箱を開く('honkan-tenomoto');
+  e.waitUntil(箱P.then((箱) => 箱.読む('写し', '殻/JSONの口').then((口) => {
+    if (!口 || !口.鍵) return; // 鍵がまだない → 次に画面を開いたとき橋で流す
+    const 列 = self.手もとの箱.送り待ちの列(箱, (手紙) => self.手もとの箱.口へ送る(口, 手紙, fetch));
+    return 列.流す().then((r) => { if (r && r.残り > 0 && !e.lastChance) throw new Error('まだ ' + r.残り + ' 通'); });
+  })));
+});
 self.addEventListener('fetch', (e) => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return; // GAS・外 は通す

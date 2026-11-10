@@ -60,10 +60,18 @@
       var 手紙 = { id: 新しいid(), 塊: 塊, すること: すること, データ: データ, 作った: 今(), 回数: 0 };
       return 箱.しまう('送り待ち', 手紙.id, 手紙).then(function () { return 手紙; });
     }
+    // 2026-11-10 頼み（バックグラウンド同期）: 画面と番頭さん（service worker）が同じ箱を流すので、
+    // Web Locks があれば 'honkan-送り待ち' の鍵をかけて、どちらか1つずつ流す（後の方は、先の方が消したあとの箱を読む）
     function 流す() {
       if (流し中) return 流し中; // 2つ同時に流さない（オンラインの知らせが続けて来ても二重にしない）
+      var N = typeof navigator !== 'undefined' ? navigator : null, L = N && N.locks;
+      流し中 = (L && L.request ? L.request('honkan-送り待ち', 中身を流す) : 中身を流す())
+        .then(function (r) { 流し中 = null; return r; }, function (e) { 流し中 = null; throw e; });
+      return 流し中;
+    }
+    function 中身を流す() {
       var 送れた = 0;
-      流し中 = 箱.全部('送り待ち').then(function (列) {
+      return 箱.全部('送り待ち').then(function (列) {
         列 = 列.filter(function (x) { return !x.止めた; }).sort(function (a, b) { return a.作った - b.作った; });
         var i = 0;
         function 次() {
@@ -83,12 +91,31 @@
           });
         }
         return 次();
-      }).then(function (r) { 流し中 = null; return r; }, function (e) { 流し中 = null; throw e; });
-      return 流し中;
+      });
     }
     function 数() { return 箱.全部('送り待ち').then(function (l) { return l.filter(function (x) { return !x.止めた; }).length; }); }
     function 止まった() { return 箱.全部('送り待ち').then(function (l) { return l.filter(function (x) { return x.止めた; }); }); } // 消さずに残し、画面で見せる
-    return { 足す: 足す, 流す: 流す, 数: 数, 止まった: 止まった };
+    function 消す(id) { return 箱.消す('送り待ち', id); } // 画面がその場で届けた手紙を、列から外す
+    return { 足す: 足す, 流す: 流す, 数: 数, 止まった: 止まった, 消す: 消す };
+  }
+
+  // ---- 宿の答えを分ける（橋でも JSON の口でも同じ決まり。2026-11-10 頼み バックグラウンド同期）
+  // 受けた・もう受けた → 届いた（列から消す）／はじいた → 脇へよける／まだ・まちがい・形がちがう → 投げる（列に残し、次の機会に同じ id で送る）
+  function 答えを分ける(j) {
+    if (j && j.まだ) throw 運び(String(j.わけ || '宿が受けている途中'));
+    if (j && (j.受けた || j.もう受けた)) return j;
+    if (j && j.はじいた) return { はじいた: String(j.はじいた) };
+    throw 運び(String((j && j.まちがい) || '宿がまだ受けられない'));
+  }
+  function 運び(わけ) { var e = new Error(わけ); e.運び = true; return e; }
+  // 番頭さん（service worker）が JSON の口へ1通送る。口 = { API, 鍵 }（殻が箱の '写し' の '殻/JSONの口' に写したもの）
+  // text/plain で送る（CORS の前問い合わせが要らない）。サーバーは手紙の id で二重に受けない
+  function 口へ送る(口, 手紙, fetchする) {
+    if (!口 || !口.API || !口.鍵) return Promise.reject(運び('鍵か口がまだない'));
+    var 本体 = JSON.stringify({ 鍵: 口.鍵, 塊: '根幹', すること: '預けた手紙', データ: { id: 手紙.id, 塊: 手紙.塊, すること: 手紙.すること, データ: 手紙.データ }, id: 手紙.id });
+    return fetchする(口.API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: 本体, redirect: 'follow' })
+      .then(function (r) { if (!r.ok) throw 運び('サーバー ' + r.status); return r.text(); })
+      .then(function (t) { var j; try { j = JSON.parse(t); } catch (e) { throw 運び('口の答えの形がちがう'); } return 答えを分ける(j); });
   }
 
   function 区画を比べる(前, 今) {
@@ -105,6 +132,6 @@
     return いつも出す.indexOf(区画) < 0; // シークレット・知らない装い・まだ知らせが来ていない → 隠す側
   }
 
-  var 出す = { 箱を開く: 箱を開く, メモリの箱: メモリの箱, 送り待ちの列: 送り待ちの列, 区画を比べる: 区画を比べる, 隠すか: 隠すか };
+  var 出す = { 箱を開く: 箱を開く, メモリの箱: メモリの箱, 送り待ちの列: 送り待ちの列, 区画を比べる: 区画を比べる, 隠すか: 隠すか, 答えを分ける: 答えを分ける, 口へ送る: 口へ送る };
   if (typeof module !== 'undefined' && module.exports) module.exports = 出す; else root.手もとの箱 = 出す;
 })(typeof self !== 'undefined' ? self : this);

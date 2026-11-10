@@ -20,6 +20,7 @@
   function 鍵をしまう(k) {
     var s = {}; try { s = JSON.parse(localStorage.getItem('honkan-shell/設定') || '{}'); } catch (e) { s = {}; }
     s.鍵 = k; 設定.鍵 = k;
+    口を箱へ写す(); // 番頭さん用の写しも新しくする（2026-11-10 頼み）
     try { localStorage.setItem('honkan-shell/設定', JSON.stringify(s)); return true; } catch (e) { return false; }
   }
   設定を読む();
@@ -86,14 +87,37 @@
   function 運びのまちがい(わけ) { var e = new Error(わけ); e.運び = true; return e; }
 
   // ==== 送り待ちの列（書く頼み）
-  var 列P = 箱P.then(function (箱) {
-    return 手もとの箱.送り待ちの列(箱, function (手紙) {
-      return 橋.呼ぶ(手紙.塊, 手紙.すること, 手紙.データ, 60000).then(function () { return { 受けた: true }; }, function (e) {
-        if (e && e.運び) throw e; // 電波・時間切れ → 列に残して、次の機会に送る
+  // 2026-11-10 頼み（バックグラウンド同期）: 書く頼みは、いつも先に列へ入れて（手紙の id が決まる）から、橋の '根幹/預けた手紙' で送る。
+  // 宿は同じ id を2回受けない。送っている途中の手紙は 送り中 に入れ、列を流すときも同じ約束を待つ（画面の中で二重に送らない）
+  var 送り中 = {};
+  function 一通送る(手紙) {
+    if (送り中[手紙.id]) return 送り中[手紙.id];
+    var p = 橋.呼ぶ('根幹', '預けた手紙', { id: 手紙.id, 塊: 手紙.塊, すること: 手紙.すること, データ: 手紙.データ }, 60000)
+      .then(手もとの箱.答えを分ける, function (e) {
+        if (e && e.運び) throw e; // 電波・時間切れ → 列に残して、次の機会に同じ id で送る
         return { はじいた: String(e && e.message || e) }; // 宿がことわった → 脇へよけて、うしろを詰まらせない
       });
-    });
-  });
+    送り中[手紙.id] = p;
+    var 外す = function () { delete 送り中[手紙.id]; };
+    p.then(外す, 外す);
+    return p;
+  }
+  var 列P = 箱P.then(function (箱) { return 手もとの箱.送り待ちの列(箱, 一通送る); });
+  // 番頭さん（service worker）に「電波が戻ったら送ってね」と頼む（できない端末は、今までどおり開いたときに流す）
+  function 同期を頼む() {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then(function (r) { if (r.sync && r.sync.register) return r.sync.register('honkan-送り待ち'); }).catch(function () { /* 開いたときに流す */ });
+  }
+  // 番頭さんは localStorage を読めないので、JSON の口と鍵を箱の '写し' に写しておく
+  function 口を箱へ写す() {
+    if (!箱P) return; // #鍵=… で開いたときは箱がまだ。下でもう一度写す
+    箱P.then(function (箱) { return 設定.鍵 ? 箱.しまう('写し', '殻/JSONの口', { API: 設定.API, 鍵: 設定.鍵 }) : 箱.消す('写し', '殻/JSONの口'); }).catch(function () { /* なし */ });
+  }
+  口を箱へ写す();
+  // アプリを閉じる・ほかへ移るとき、まだ届いていない手紙があれば同期を頼む
+  function 閉じる前に() { 列P.then(function (列) { return 列.数(); }).then(function (n) { if (n > 0) 同期を頼む(); }).catch(function () { /* なし */ }); }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') 閉じる前に(); });
+  window.addEventListener('pagehide', 閉じる前に);
   var 流し中 = false;
   function 送り待ちを流す() {
     if (流し中 || !navigator.onLine || !橋.用意()) return;
@@ -141,9 +165,18 @@
     呼ぶ: function (塊, すること, データ) {
       var 名 = 塊 + '/' + すること;
       if (書く[名]) {
-        var 預ける = function () { return 列P.then(function (列) { return 列.足す(塊, すること, データ); }).then(function () { 板を描き直す(); return JSON.parse(JSON.stringify(書く[名])); }); };
-        if (!navigator.onLine || !橋.用意()) return 預ける();
-        return 橋.呼ぶ(塊, すること, データ, 60000).catch(function (e) { if (e && e.運び) return 預ける(); throw e; });
+        var 預けた形 = function () { 板を描き直す(); return JSON.parse(JSON.stringify(書く[名])); };
+        return 列P.then(function (列) {
+          return 列.足す(塊, すること, データ).then(function (手紙) {
+            if (!navigator.onLine || !橋.用意()) { 同期を頼む(); return 預けた形(); }
+            return 一通送る(手紙).then(function (r) {
+              return 列.消す(手紙.id).then(function () {
+                if (r && r.はじいた) throw new Error(r.はじいた); // 宿がことわった → 今までどおり、その場でまちがいを返す
+                板を描き直す(); return r && '答え' in r ? r.答え : 預けた形();
+              });
+            }, function () { 同期を頼む(); return 預けた形(); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
+          });
+        });
       }
       if (読む.indexOf(名) >= 0) return 写しで読む(塊, すること, データ);
       if (見回り.indexOf(名) >= 0) return 橋.呼ぶ(塊, すること, データ, 30000);
