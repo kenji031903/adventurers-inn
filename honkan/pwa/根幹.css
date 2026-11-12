@@ -202,6 +202,10 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しのまとめ:disabled { opacity: .6; }
 .本館-引き出しの貯め { display: flex; flex-direction: column; gap: 6px; padding: 6px 12px 6px; max-height: 26vh; overflow-y: auto; }
 .本館-引き出しの貯め[hidden] { display: none; }
+.本館-引き出しの貯め頭 { display: block; margin: 6px 12px 0; min-height: 40px; padding: 6px 12px; text-align: left; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 14px; cursor: pointer; touch-action: manipulation; }
+.本館-引き出しの貯め頭[hidden] { display: none; }
+.本館-引き出しの泡[data-長い="1"]:not([data-開いた="1"]) .本館-引き出しの文 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; }
+.本館-引き出しの続き { display: block; margin: 6px 0 0 auto; min-height: 36px; padding: 4px 12px; border: 1.5px solid #c8ab6c; border-radius: 10px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 13px; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの貯め札 { display: flex; align-items: stretch; gap: 6px; }
 .本館-引き出しの貯め札の文 { flex: 1; min-width: 0; min-height: 40px; text-align: left; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #fffdf6; color: #4a3520; font: inherit; font-size: 14px; padding: 6px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの貯め札の消す { flex: none; width: 40px; min-height: 40px; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 15px; padding: 0; cursor: pointer; touch-action: manipulation; }
