@@ -137,6 +137,9 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの窓たち { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .本館-引き出しの様子 { margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 244, 214, 0.9); color: #5a4630; font-size: 12px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 .本館-引き出しの様子[hidden] { display: none; }
+.本館-引き出しの頭 .本館-引き出しの様子頭 { margin: 0; text-shadow: none; overflow-wrap: anywhere; }
+.本館-引き出しの頭 .本館-引き出しの様子頭 + .本館-引き出しの様子 { margin-top: 0; }
+.本館-つなぎ先 .本館-つなぎのあだ名 { flex: 1 1 140px; min-width: 0; min-height: 32px; padding: 2px 8px; font: inherit; font-size: 14px; color: #3b2a18; border: 1.5px solid #2e1a0b; border-radius: 8px; background: #fffaf0; text-shadow: none; }
 .本館-引き出しの窓札 { position: relative; height: 40px; padding: 0 6px; font: inherit; font-size: 14px; font-weight: 700; color: #5a4128; text-shadow: none; border: 2px solid #2e1a0b; border-radius: 8px; background: #f3e3bf; box-shadow: inset 0 -2px 0 #0000002e; cursor: pointer; white-space: nowrap; overflow: visible; touch-action: manipulation; }
 .本館-引き出しの窓札[aria-pressed="true"] { background: #fffaf0; color: #3b2a18; box-shadow: inset 0 0 0 2px #e0b040, 0 0 8px #e0b04088; }
 .本館-引き出しの窓札 .本館-印 { position: absolute; top: -7px; right: -5px; min-width: 20px; height: 20px; border-radius: 10px; background: #c8352b; border: 1.5px solid #fffaf0; color: #fff; font-size: 11px; line-height: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; font-family: system-ui, sans-serif; }
