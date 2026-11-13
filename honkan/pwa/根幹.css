@@ -156,6 +156,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの列[hidden] { display: none; }
 .本館-引き出しの空 { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; white-space: pre-wrap; }
 .本館-引き出しの空:not(:nth-last-child(2)) { display: none; } 
+.本館-引き出しの何も { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; opacity: .55; white-space: pre-wrap; } 
+.本館-引き出しの何も[hidden] { display: none; }
 .本館-引き出しの前 { align-self: center; min-height: var(--本館-小ボタン); padding: 6px 16px; border: 1.5px solid #c8ab6c; border-radius: 999px; background: #fbf1da; color: #6e4a24; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの前[hidden] { display: none; }
 .本館-引き出しの前:active { transform: translateY(2px); }
