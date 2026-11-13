@@ -280,6 +280,34 @@
     navigator.serviceWorker.getRegistration().then(function (r) { if (r) return r.update(); }).catch(function () { /* 次の機会に */ });
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') 版を見に行く(); });
+  // 元なし（頼み203 殻22）: パソコンの入り口（Obsidian の右の窓など）は開きっぱなしで、画面に戻った合図も来にくい。古い版のまま止まらないように
+  //   1) 30分ごと・窓に戻ったとき・電波が戻ったときにも、番頭さんに新しい版を見に行ってもらう
+  //   2) 新しい版が届いたら、使っていないときに自分で開き直す（開いてすぐでまだ触っていない／画面が隠れた／10分さわっていない）
+  //      使っているとき（マイク・声・音の出る動画が鳴っている・書きかけの字がある）は待つ。札は30秒出し、タップでも今すぐ使える
+  var 最初から番頭 = !!(navigator.serviceWorker && navigator.serviceWorker.controller); // はじめて番頭さんが来た回は、配り元から取った新しい画面なので開き直さない
+  var 新しい版が待っている = false, 触った = false, 最後に触った = Date.now(), 鳴らした = [];
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (n) { window.addEventListener(n, function () { 触った = true; 最後に触った = Date.now(); }, { capture: true, passive: true }); });
+  (function () { var P = window.HTMLMediaElement && HTMLMediaElement.prototype; if (!P || !P.play) return; var 元 = P.play;
+    try { P.play = function () { if (鳴らした.indexOf(this) < 0) { 鳴らした.push(this); if (鳴らした.length > 40) 鳴らした.shift(); } return 元.apply(this, arguments); }; } catch (e) { /* 見張れない端末は、隠れたときだけ開き直す */ } })();
+  function 使っている() {
+    try { var y = window.本館 && window.本館.様子 ? window.本館.様子() : null; if (y && ((y.マイク && y.マイク.持ち主) || (y.放送室 && (y.放送室.鳴っている || y.放送室.待ち)))) return 'マイクか声'; } catch (e) { /* 聞けなければ次へ */ }
+    // 宿の曲（BGM）は待つ理由にしない: 曲はいつも流れていることが多く、待つと開きっぱなしの窓がずっと古いまま。開き直すと曲は頭から流れ直す
+    if (鳴らした.some(function (a) { return !a.paused && !a.ended && !a.muted && !a.loop; })) return '音か動画'; // 音なし・くりかえしの動く絵（マスコットなど）は数えない
+    var 欄 = document.querySelectorAll('textarea, input[type="text"], input[type="search"], input:not([type])');
+    for (var i = 0; i < 欄.length; i++) if (String(欄[i].value || '').trim()) return '書きかけ（' + (欄[i].className || 欄[i].tagName) + '）';
+    return false;
+  }
+  function 待っていたら開き直す(わけ) {
+    if (!新しい版が待っている || 新しくしている || !最初から番頭) return false;
+    var すぐ = わけ === '開いてすぐ' ? (!触った && performance.now() < 20000) : (わけ === '隠れた' ? document.visibilityState === 'hidden' : Date.now() - 最後に触った > 10 * 60000);
+    if (!すぐ || 使っている()) return false;
+    新しくしている = true; 閉じる前に(); setTimeout(function () { location.reload(); }, 200); return true;
+  }
+  setInterval(function () { 版を見に行く(); }, 30 * 60000);
+  setInterval(function () { 待っていたら開き直す('さわっていない'); }, 60000);
+  window.addEventListener('focus', 版を見に行く);
+  window.addEventListener('online', 版を見に行く);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') 待っていたら開き直す('隠れた'); });
   function 帯(t, 色) { 帯の今 = { t: t, 色: 色 || '' }; if (!板) return; var b = 板.$('帯'); b.textContent = t; b.setAttribute('data-色', 色 || ''); }
   var 描く = {
     '掲示板': function (v) { var ul = 板.$('掲示板'); ul.textContent = ''; (v || []).forEach(function (x) { var li = document.createElement('li'); li.textContent = x; ul.appendChild(li); }); },
@@ -355,12 +383,12 @@
   window.addEventListener('online', function () { 裏で読む(); 送り待ちを流す(); });
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(function () { /* 番頭さんなしでも動く */ });
-    navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data && ev.data.番頭 === '新しい版') { 番頭の版 = '新しい版（' + ev.data.版 + '）を覚えたよ。次に開いたときから使うね'; if (板) 板.$('版').textContent = 番頭の版;
-      if (!新しくしている && navigator.serviceWorker.controller) { var 札 = 札を出す('宿の新しい版が届いたよ。タップで今すぐ使う', 12000); 札.style.cursor = 'pointer'; 札.onclick = function () { location.reload(); }; } } });
+    navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data && ev.data.番頭 === '新しい版') { 番頭の版 = '新しい版（' + ev.data.版 + '）を覚えたよ。使っていないときに自分で開き直すね'; if (板) 板.$('版').textContent = 番頭の版;
+      if (!新しくしている && navigator.serviceWorker.controller) { 新しい版が待っている = true; if (待っていたら開き直す('開いてすぐ')) return; var 見直し = setInterval(function () { if (performance.now() > 20000 || 待っていたら開き直す('開いてすぐ')) clearInterval(見直し); }, 1000); var 札 = 札を出す('宿の新しい版が届いたよ。タップで今すぐ使う（使っていないときは自分で新しくなるよ）', 30000); 札.style.cursor = 'pointer'; 札.onclick = function () { location.reload(); }; } } }); // 頼み203: 札は30秒（下の字を長くふさがない）。見のがしても、使っていないときに自分で開き直す
     navigator.serviceWorker.ready.then(版を見に行く).catch(function () { /* なし */ });
   }
   window.本館の殻 = {
-    様子: function () { return { 橋: 橋.様子(), モード: モード, 写し: Object.keys(前の写し), 鍵: !!設定.鍵, 写しの数: 写しの数, 開くまで: 開くまで }; },
+    様子: function () { return { 橋: 橋.様子(), モード: モード, 写し: Object.keys(前の写し), 鍵: !!設定.鍵, 写しの数: 写しの数, 開くまで: 開くまで, 新しい版: { 待っている: 新しい版が待っている, 最初から番頭: 最初から番頭, 触った: 触った, 使っている: 使っている(), 鳴っている: 鳴らした.filter(function (a) { return !a.paused && !a.ended; }).map(function (a) { return String(a.currentSrc || a.src || '').split('/').pop().slice(0, 40) + (a.muted ? '（音なし）' : ''); }) } }; }, // 新しい版: 頼み203（元なし）
     送り待ちの数: function () { return 列P.then(function (列) { return 列.数(); }); }
   };
 })();
