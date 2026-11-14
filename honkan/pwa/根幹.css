@@ -54,6 +54,9 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-席[data-席="メニュー"] { width: var(--本館-ボタン); height: var(--本館-ボタン); right: calc(16px + var(--本館-safe-r)); bottom: calc(var(--本館-帯) + 24px); }
 :root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-席[data-席^="下"], :root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-席[data-席="メニュー"] { visibility: hidden; pointer-events: none; }
 :root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-塊の箱 { scale: .55; transform-origin: 0 100%; opacity: .92; }
+:root[data-本館-覆う] .本館-層:is([data-層="床"], [data-層="家具"], [data-層="キャラ"], [data-層="吹き出し"]) { content-visibility: hidden; }
+:root[data-本館-暗い] .本館-層[data-層="知らせ"] > .本館-塊の箱 { visibility: hidden; }
+:root[data-本館-暗い] .本館-層[data-層="知らせ"] > :is(.本館-席, .本館-引き出しのタブ) { opacity: .2; }
 .本館-キャラ { position: absolute; right: calc(84px + var(--本館-safe-r)); bottom: calc(var(--本館-帯) + 8px); font-size: 56px; line-height: 1; }
 .本館-キャラ[hidden] { display: none; }
 .本館-吹き出し { position: absolute; left: 16px; right: 16px; bottom: calc(var(--本館-帯) + 96px); margin: 0 auto; max-width: 480px; background: var(--本館-面); border: 1px solid var(--本館-枠); border-radius: var(--本館-丸み); padding: 10px 14px; box-shadow: var(--本館-影); }
