@@ -185,6 +185,17 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの泡[data-種="引き継ぎの要約"] .本館-引き出しの見出し { color: #553285; }
 .本館-引き出しの泡[data-種="ほかの裏の知らせ"] { background: #f2f3f5; border-color: #9aa0a6; color: #44484d; }
 .本館-引き出しの泡[data-種="ほかの裏の知らせ"] .本館-引き出しの見出し { color: #555b62; }
+.本館-引き出しの動き { margin-top: 6px; padding-top: 4px; border-top: 1px dashed #c8ab6c80; white-space: normal; font-size: 13px; color: #6e4a24; }
+.本館-引き出しの動きの見出し { cursor: pointer; list-style: none; user-select: none; -webkit-user-select: none; min-height: 36px; display: flex; align-items: center; gap: 6px; font-weight: 700; color: #8a5a2a; }
+.本館-引き出しの動きの見出し::-webkit-details-marker { display: none; }
+.本館-引き出しの動きの見出し::before { content: '▶'; font-size: 10px; flex: none; transition: transform .18s; }
+.本館-引き出しの動き[open] > .本館-引き出しの動きの見出し::before { transform: rotate(90deg); }
+.本館-引き出しの動きの中身 { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 2px; max-height: 50vh; overflow: auto; }
+.本館-引き出しの動きの題 { font-weight: 700; margin-bottom: 2px; }
+.本館-引き出しの動きの段 { display: flex; flex-direction: column; gap: 4px; }
+.本館-引き出しの動きの行 { line-height: 1.45; word-break: break-word; }
+.本館-引き出しの動きの場所 { display: block; font-size: 11px; color: #9a8462; }
+.本館-引き出しの動きの本 { display: block; width: 100%; min-height: var(--本館-小ボタン); padding: 4px 12px; text-align: left; border: 1.5px solid #c8ab6c; border-radius: 10px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 13px; cursor: pointer; touch-action: manipulation; box-sizing: border-box; }
 .本館-引き出しの泡[data-光る="1"] { box-shadow: 0 0 0 3px #f0a83c; transition: box-shadow .4s; } 
 .本館-引き出しの札 { background: #fffdf6; border: 2px solid #e0b040; border-radius: 12px; padding: 10px 12px; box-shadow: 0 2px 6px #8a6a3c33, inset 0 0 0 1px #fff6dc; }
 .本館-引き出しの札[data-済み="1"] { border-color: #c8ab6c; opacity: .8; }
