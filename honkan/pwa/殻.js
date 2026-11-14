@@ -260,17 +260,26 @@
     if (新しくしている) return;
     if (!navigator.onLine) { 札を出す('電波がないので、つながってからもう一度押してね', 4000); return; }
     新しくしている = true; 札を出す('新しい版を取りに行っているよ…');
-    var 棚を空に = ('caches' in window) ? caches.keys().then(function (ks) {
-      return Promise.all(ks.filter(function (k) { return k.indexOf('honkan-') === 0 && k.indexOf('honkan-絵-') !== 0 && k.indexOf('honkan-一度-') !== 0; }).map(function (k) { return caches.delete(k); }));
-    }) : Promise.resolve();
-    var 番頭に頼む = ('serviceWorker' in navigator) ? navigator.serviceWorker.getRegistration().then(function (r) {
-      if (!r) return;
-      return r.update().then(function () {
-        var w = r.installing || r.waiting; if (!w) return;
-        return new Promise(function (ok) { var tm = setTimeout(ok, 15000); w.addEventListener('statechange', function () { if (w.state === 'activated' || w.state === 'redundant') { clearTimeout(tm); ok(); } }); });
+    // 頼み103（2026-11-14 作業係F）: 棚を空にするのと、番頭さんの入れ替えを同時にしていたので、入れ替えの途中の新しい棚まで消して、古い版のまま開き直すことがあった。
+    //   → 順番に: ① 殻と部品の棚を空にする → ② 番頭さんに新しい版を見に行かせ、入れ替わるまで待つ（15秒まで）→ ③ 開き直す
+    function 棚を空に() {
+      if (!('caches' in window)) return Promise.resolve();
+      return caches.keys().then(function (ks) {
+        return Promise.all(ks.filter(function (k) { return k.indexOf('honkan-') === 0 && k.indexOf('honkan-絵-') !== 0 && k.indexOf('honkan-一度-') !== 0; }).map(function (k) { return caches.delete(k); }));
       });
-    }) : Promise.resolve();
-    Promise.all([棚を空に, 番頭に頼む]).catch(function () { /* 開き直せば配り元から取る */ }).then(function () {
+    }
+    function 入れ替わるまで(w) {
+      if (!w || w.state === 'activated' || w.state === 'redundant') return Promise.resolve();
+      return new Promise(function (ok) { var tm = setTimeout(ok, 15000); w.addEventListener('statechange', function () { if (w.state === 'activated' || w.state === 'redundant') { clearTimeout(tm); ok(); } }); });
+    }
+    function 番頭に頼む() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve();
+      return navigator.serviceWorker.getRegistration().then(function (r) {
+        if (!r) return;
+        return r.update().then(function () { return 入れ替わるまで(r.installing || r.waiting); });
+      });
+    }
+    棚を空に().catch(function () { /* 空にできなくても、見に行く */ }).then(番頭に頼む).catch(function () { /* 開き直せば配り元から取る */ }).then(function () {
       札を出す('新しくするね。開き直すよ'); setTimeout(function () { location.reload(); }, 300);
     });
   }
