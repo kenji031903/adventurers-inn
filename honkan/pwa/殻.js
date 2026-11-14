@@ -23,6 +23,29 @@
     口を箱へ写す(); // 番頭さん用の写しも新しくする（2026-11-10 頼み）
     try { localStorage.setItem('honkan-shell/設定', JSON.stringify(s)); return true; } catch (e) { return false; }
   }
+  // 版73（2026-11-14 頼み247 宿25🍎）: この端末の鍵を、その場で作ってしまう。スマホの鍵（根幹/スマホ版の鍵）をそのまま使い回し、
+  // 名前（パソコン版／スマホ版）だけ付けて呼ぶ。鍵は橋の返事でもらい、画面にも記録にも出さずにしまう。新しい窓やタブは開かない
+  // （宿からパソコンを動かす作り＝頼み231・241③④の窓の並びはそのまま）。シークレットのあいだは作らない
+  function この端末の名前() {
+    var 手 = false; try { 手 = window.matchMedia('(pointer: coarse)').matches; } catch (e) { 手 = false; }
+    return 手 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') ? 'スマホ版' : 'パソコン版';
+  }
+  var 鍵の作り中 = false, 作り直しの念押し = 0;
+  function この端末に鍵を作る(終わった) {
+    var 名前 = この端末の名前(), 言う = function (t) { 知らせ(t); if (終わった) 終わった(t); };
+    if (モード === 'シークレット') { 言う('シークレットのあいだは、鍵を作らないよ'); return; }
+    if (鍵の作り中) { 言う('いま鍵を作っているよ…'); return; }
+    if (設定.鍵 && Date.now() - 作り直しの念押し > 6000) { 作り直しの念押し = Date.now(); 言う('この端末の鍵はもうあるよ。作り直すなら、もう一度押してね'); return; }
+    作り直しの念押し = 0; 鍵の作り中 = true; 言う(名前 + 'の鍵を作っているよ…');
+    橋.呼ぶ('根幹', 'スマホ版の鍵', { 名前: 名前, そのまま: true }, 60000).then(function (r) {
+      var k = r && typeof r.鍵 === 'string' ? r.鍵 : '';
+      if (k.length < 32) throw new Error('鍵が来なかった');
+      鍵をしまう(k); k = '';
+      言う(名前 + 'の鍵をしまったよ（この端末だけ）'); 板を描き直す(); 裏で読む();
+    }).catch(function (e) {
+      言う('鍵を作れなかったよ（' + (e && e.運び ? '宿とまだつながっていない' : String(e && e.message || e).slice(0, 40)) + '）');
+    }).then(function () { 鍵の作り中 = false; });
+  }
   設定を読む();
   // #鍵=… で来たら、しまってから URL の印を消す（履歴にも残さない）
   var h = /^#鍵=(.+)$/.exec(decodeURIComponent(location.hash || ''));
@@ -216,6 +239,7 @@
       '<section><p class="apb-小">装い: <span data-id="モード"></span><br><span data-id="版"></span></p>' +
       '<p class="apb-小">手もとの保存（写し・送り待ち・書庫）: <span data-id="保存"></span></p>' +
       '<p class="apb-小">宿の鍵（パソコンで作った長い合言葉。この端末だけにしまう。掲示板と書庫の分だけに使う）: <span data-id="鍵の様子"></span></p>' +
+      '<div class="apb-行"><button class="apb-本番" data-id="鍵を作る">🔑 この端末に鍵を作る</button></div>' +
       '<div class="apb-行"><input class="apb-鍵の欄" data-id="鍵の欄" type="password" autocomplete="off" placeholder="鍵をはりつける"><button data-id="鍵をしまう">しまう</button></div></section>';
     var $ = function (id) { return 地.querySelector('[data-id="' + id + '"]'); };
     板 = { 地: 地, $: $, 描く: function () {
@@ -225,7 +249,7 @@
         if (!板) return; $('列').textContent = '預かっている言葉: ' + a[0] + ' 通' + (a[1].length ? '（宿がことわった ' + a[1].length + ' 通は、消さずに残してある）' : '') + '／写しで先に出した回数: ' + 写しの数.出した;
       });
       $('モード').textContent = モード || '（まだ分からない → 掲示板のほかは隠す）';
-      $('鍵の様子').textContent = 設定.鍵 ? 'しまってある' : 'まだない（ここで入れてね）';
+      $('鍵の様子').textContent = 設定.鍵 ? 'しまってある' : 'まだない（🔑 で作るか、ここで入れてね）';
       $('保存').textContent = 保存の札.ずっと === true ? 'この端末にずっと残す（ブラウザが勝手に片づけない）' : 保存の札.ずっと === false ? 'ふつう（場所が足りないとき、ブラウザが片づけることがある。開き直すと作り直すよ）' : '確かめ中…';
       地.querySelectorAll('[data-区画]').forEach(function (el) { el.hidden = 手もとの箱.隠すか(el.getAttribute('data-区画'), モード); });
       if (手もとの箱.隠すか('書庫', モード)) $('本').textContent = '';
@@ -236,6 +260,7 @@
       if (!navigator.onLine) { 帯('宿の本番はつながっているときだけ開くよ', '黄'); return; }
       location.href = 設定.本番の宿;
     };
+    $('鍵を作る').onclick = function () { この端末に鍵を作る(function (t) { if (板) $('鍵の様子').textContent = t; }); };
     $('鍵をしまう').onclick = function () {
       var k = $('鍵の欄').value.trim(); $('鍵の欄').value = '';
       if (k.length < 32) { $('鍵の様子').textContent = '短すぎるよ（パソコンで作った鍵をそのまま）'; return; }
@@ -384,6 +409,7 @@
     道具 = d; モード = d.モード.今();
     d.席.置く({ 名前: 'アプリ版', 絵: '📱', 分類: '設定', 押す: 板を開く });
     d.席.置く({ 名前: '宿を新しく', 絵: '🔄', 分類: '設定', 押す: 新しくする });
+    d.席.置く({ 名前: '端末の鍵', 絵: '🔑', 分類: '設定', 押す: function () { この端末に鍵を作る(); } }); // 版73 頼み247 宿25
     d.掲示板.聞く('モード', function (x) { モード = (x && x.今) || d.モード.今(); 板を描き直す(); });
   });
   var 帳面 = (window.HONKAN_LEDGER || []).concat(['アプリ版: v1']);

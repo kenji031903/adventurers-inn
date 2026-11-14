@@ -70,6 +70,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 @keyframes 本館-吹きふわ { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .本館-吹き出し { animation: none; } }
 .本館-吹き出し:empty { display: none; }
+:root:has(.本館-小窓の幕[data-板]:not([hidden])) .本館-層[data-層="吹き出し"] { z-index: 55; }
+:root:has(.本館-小窓の幕[data-板]:not([hidden])) .本館-吹き出し { bottom: var(--本館-板の上, calc(var(--本館-帯) + 96px)); }
 .本館-吹き出し b { color: var(--本館-吹きの名); margin-right: 6px; }
 .本館-吹き出し[data-押せる="1"] { cursor: pointer; border-color: var(--本館-差し色); } 
 .本館-ページ { position: absolute; inset: 0; background: var(--本館-床); display: flex; flex-direction: column; }
