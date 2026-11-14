@@ -61,6 +61,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 :root[data-本館-ページ] .本館-層[data-層="知らせ"] > .本館-塊の箱 { scale: .55; transform-origin: 0 100%; opacity: .92; }
 :root[data-本館-覆う] .本館-層:is([data-層="床"], [data-層="家具"], [data-層="キャラ"], [data-層="吹き出し"]) { content-visibility: hidden; }
 :root[data-本館-暗い] .本館-層[data-層="知らせ"] > .本館-塊の箱 { visibility: hidden; }
+:root[data-本館-出口だけ] .本館-層[data-層="知らせ"] > .本館-塊の箱 { visibility: hidden; pointer-events: none; }
 :root[data-本館-暗い] .本館-層[data-層="知らせ"] > :is(.本館-席, .本館-引き出しのタブ) { opacity: .2; }
 .本館-キャラ { position: absolute; right: calc(84px + var(--本館-safe-r)); bottom: calc(var(--本館-帯) + 8px); font-size: 56px; line-height: 1; }
 .本館-キャラ[hidden] { display: none; }
