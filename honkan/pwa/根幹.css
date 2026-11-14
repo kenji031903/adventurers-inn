@@ -262,6 +262,11 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの送る { background: linear-gradient(#ffffff40, #00000026), #c9902c; border-color: #5a3a10; box-shadow: inset 0 1px 0 #ffffff60, 0 2px 0 #5a3a10, 0 0 8px #e0b04099; }
 .本館-引き出しの下の板 { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px calc(12px + var(--本館-safe-b)); background: #fffaf0; border-top: 2px solid #8a6a3c; border-radius: 16px 16px 0 0; box-shadow: 0 -4px 16px #2e1a0b44; }
 .本館-引き出しの下の板[hidden] { display: none; }
+.本館-引き出し[data-確かめ="1"] { background: transparent; border-left-color: transparent; box-shadow: none; pointer-events: none; }
+.本館-引き出し[data-確かめ="1"] > :not(.本館-引き出しの下):not(.本館-引き出しの下の板):not(.本館-引き出しの荷) { visibility: hidden; }
+.本館-引き出し[data-確かめ="1"] > .本館-引き出しの下, .本館-引き出し[data-確かめ="1"] > .本館-引き出しの下の板, .本館-引き出し[data-確かめ="1"] > .本館-引き出しの荷 { pointer-events: auto; border-radius: 14px 14px 0 0; }
+.本館-引き出しの幕[data-確かめ="1"] { background: none; }
+.本館-引き出しの丸[aria-pressed="true"] { background: linear-gradient(#ffffff40, #00000026), #c9902c; border-color: #5a3a10; box-shadow: inset 0 1px 0 #ffffff60, 0 2px 0 #5a3a10, 0 0 8px #e0b04099; }
 .本館-引き出しの行き先 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .本館-引き出しの品.本館-引き出しの行き先札 { min-width: 0; min-height: 52px; padding: 6px 2px; font-size: 13px; line-height: 1.25; text-align: center; white-space: pre-line; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; } 
 .本館-引き出しの行き先札[aria-pressed="true"] { background: #f6dc9a; border-color: #8a6a3c; color: #3b2a18; text-shadow: none; box-shadow: inset 0 0 0 2px #e0b040; font-weight: 700; }
