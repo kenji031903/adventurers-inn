@@ -214,6 +214,7 @@
       '<section><button class="apb-本番" data-id="更新">🔄 宿を新しくする</button></section>' +
       '<section><button class="apb-本番" data-id="本番">宿の本番を開く（つながっているときだけ）</button></section>' +
       '<section><p class="apb-小">装い: <span data-id="モード"></span><br><span data-id="版"></span></p>' +
+      '<p class="apb-小">手もとの保存（写し・送り待ち・書庫）: <span data-id="保存"></span></p>' +
       '<p class="apb-小">宿の鍵（パソコンで作った長い合言葉。この端末だけにしまう。掲示板と書庫の分だけに使う）: <span data-id="鍵の様子"></span></p>' +
       '<div class="apb-行"><input class="apb-鍵の欄" data-id="鍵の欄" type="password" autocomplete="off" placeholder="鍵をはりつける"><button data-id="鍵をしまう">しまう</button></div></section>';
     var $ = function (id) { return 地.querySelector('[data-id="' + id + '"]'); };
@@ -225,6 +226,7 @@
       });
       $('モード').textContent = モード || '（まだ分からない → 掲示板のほかは隠す）';
       $('鍵の様子').textContent = 設定.鍵 ? 'しまってある' : 'まだない（ここで入れてね）';
+      $('保存').textContent = 保存の札.ずっと === true ? 'この端末にずっと残す（ブラウザが勝手に片づけない）' : 保存の札.ずっと === false ? 'ふつう（場所が足りないとき、ブラウザが片づけることがある。開き直すと作り直すよ）' : '確かめ中…';
       地.querySelectorAll('[data-区画]').forEach(function (el) { el.hidden = 手もとの箱.隠すか(el.getAttribute('data-区画'), モード); });
       if (手もとの箱.隠すか('書庫', モード)) $('本').textContent = '';
       Object.keys(前の写し).forEach(function (k) { 区画を描く(k, 前の写し[k]); });
@@ -245,6 +247,7 @@
     板.描く();
   }
   var 帯の今 = { t: '…', 色: '' }, 開くまで = 0, 番頭の版 = '';
+  var 保存の札 = { 頼んだ: false, ずっと: null }; // 版71 頼み241④: 手もとの箱を消さないでね の札（下の 橋.作る のあとで頼む）
 
   // ---- 🔄 宿を新しくする（殻6 2026-11-09 頼み99: 閉じて開き直しても新しくならない、をボタン1つで）
   // たとえ: 番頭さんの棚の殻と部品だけ空にして、配り元へ新しい版を見に行かせ、開き直す（絵・曲・声の棚と、預けた言葉はそのまま）
@@ -387,6 +390,15 @@
   本館.開く(帳面, 殻の口);
   開くまで = Math.round(performance.now() - t0);
   橋.作る();
+  // 版71 頼み241④（作業係I）: パソコンでもスマホと同じに、手もとの箱（写し・送り待ち・書庫）を「消さないでね」と頼んでおく。
+  //   たとえ: 宿の棚に「預かり物・捨てないで」の札を貼る。ブラウザが場所に困っても、札のある棚は片づけない（断られても、今までどおり動く）
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      保存の札.頼んだ = true;
+      (navigator.storage.persisted ? navigator.storage.persisted() : Promise.resolve(false)).then(function (済) { return 済 || navigator.storage.persist(); })
+        .then(function (ok) { 保存の札.ずっと = !!ok; 板を描き直す(); }).catch(function () { 保存の札.ずっと = false; });
+    }
+  } catch (e) { /* 札がなくても動く */ }
   写しを出す().then(裏で読む);
   window.addEventListener('offline', function () { 帯('電波なし（手もとの写しで動いているよ）', '黄'); 板を描き直す(); });
   window.addEventListener('online', function () { 裏で読む(); 送り待ちを流す(); });
@@ -397,7 +409,7 @@
     navigator.serviceWorker.ready.then(版を見に行く).catch(function () { /* なし */ });
   }
   window.本館の殻 = {
-    様子: function () { return { 橋: 橋.様子(), モード: モード, 写し: Object.keys(前の写し), 鍵: !!設定.鍵, 写しの数: 写しの数, 開くまで: 開くまで, 新しい版: { 待っている: 新しい版が待っている, 最初から番頭: 最初から番頭, 触った: 触った, 使っている: 使っている(), 鳴っている: 鳴らした.filter(function (a) { return !a.paused && !a.ended; }).map(function (a) { return String(a.currentSrc || a.src || '').split('/').pop().slice(0, 40) + (a.muted ? '（音なし）' : ''); }) } }; }, // 新しい版: 頼み203（元なし）
+    様子: function () { return { 橋: 橋.様子(), モード: モード, 写し: Object.keys(前の写し), 鍵: !!設定.鍵, 保存の札: 保存の札, 写しの数: 写しの数, 開くまで: 開くまで, 新しい版: { 待っている: 新しい版が待っている, 最初から番頭: 最初から番頭, 触った: 触った, 使っている: 使っている(), 鳴っている: 鳴らした.filter(function (a) { return !a.paused && !a.ended; }).map(function (a) { return String(a.currentSrc || a.src || '').split('/').pop().slice(0, 40) + (a.muted ? '（音なし）' : ''); }) } }; }, // 新しい版: 頼み203（元なし）
     送り待ちの数: function () { return 列P.then(function (列) { return 列.数(); }); }
   };
 })();

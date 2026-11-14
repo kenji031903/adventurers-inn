@@ -10,6 +10,11 @@
   --本館-あぶない: #d9534f;
   --本館-影: 0 2px 8px rgba(60, 40, 30, .18);
   --本館-丸み: 14px;
+  --本館-引き出しの幅: min(max(420px, 50%), calc(100% - 34px));
+  --本館-吹きの地: #fffdf8;
+  --本館-吹きの字: #4a3a3a;
+  --本館-吹きの枠: #8a6a3a;
+  --本館-吹きの名: #c0587a;
   --本館-字: 16px;
   --本館-ボタン: 56px;
   --本館-小ボタン: 44px;
@@ -59,9 +64,12 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 :root[data-本館-暗い] .本館-層[data-層="知らせ"] > :is(.本館-席, .本館-引き出しのタブ) { opacity: .2; }
 .本館-キャラ { position: absolute; right: calc(84px + var(--本館-safe-r)); bottom: calc(var(--本館-帯) + 8px); font-size: 56px; line-height: 1; }
 .本館-キャラ[hidden] { display: none; }
-.本館-吹き出し { position: absolute; left: 16px; right: 16px; bottom: calc(var(--本館-帯) + 96px); margin: 0 auto; max-width: 480px; background: var(--本館-面); border: 1px solid var(--本館-枠); border-radius: var(--本館-丸み); padding: 10px 14px; box-shadow: var(--本館-影); }
+.本館-吹き出し { position: absolute; left: 16px; right: 16px; bottom: calc(var(--本館-帯) + 96px); margin: 0 auto; max-width: 480px; background: var(--本館-吹きの地); color: var(--本館-吹きの字); border: 1.5px solid var(--本館-吹きの枠); border-radius: 18px; padding: 10px 16px; box-shadow: 0 3px 10px #3a22104d; line-height: 1.5; overflow-wrap: anywhere; animation: 本館-吹きふわ .25s ease-out 1; }
+.本館-吹き出し::after { content: ""; position: absolute; left: 26px; bottom: -9px; width: 14px; height: 14px; background: var(--本館-吹きの地); border-right: 1.5px solid var(--本館-吹きの枠); border-bottom: 1.5px solid var(--本館-吹きの枠); border-bottom-right-radius: 4px; transform: rotate(45deg) skew(8deg, 8deg); }
+@keyframes 本館-吹きふわ { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .本館-吹き出し { animation: none; } }
 .本館-吹き出し:empty { display: none; }
-.本館-吹き出し b { color: var(--本館-差し色); margin-right: 6px; }
+.本館-吹き出し b { color: var(--本館-吹きの名); margin-right: 6px; }
 .本館-吹き出し[data-押せる="1"] { cursor: pointer; border-color: var(--本館-差し色); } 
 .本館-ページ { position: absolute; inset: 0; background: var(--本館-床); display: flex; flex-direction: column; }
 .本館-ページ[hidden] { display: none; }
@@ -121,6 +129,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-層[data-層="知らせ"]:has(> .本館-引き出しの幕[data-開="1"]) > .本館-塊の箱 { z-index: 2; }
 .本館-引き出しの幕 { position: absolute; inset: 0; z-index: 3; background: radial-gradient(ellipse at 100% 50%, #3a22101f, #1e120866); opacity: 0; visibility: hidden; transition: opacity .22s ease; -webkit-tap-highlight-color: transparent; }
 .本館-引き出しの幕[data-開="1"] { opacity: 1; visibility: visible; }
+.本館-引き出しの幕 { pointer-events: none; background: radial-gradient(ellipse at 100% 50%, #3a221014, #1e120826); }
 .本館-引き出しの幕[hidden] { display: none; }
 .本館-引き出しのタブ { position: absolute; right: 0; top: 42%; z-index: 4; width: 32px; height: 60px; padding: 0; border: 2px solid #2e1a0b; border-right: 0; border-radius: 16px 0 0 16px; background: linear-gradient(90deg, #ffffff1f, #00000038), var(--本館-木目) center / 220px, #7a5230; box-shadow: inset 0 1px 0 #ffffff40, -2px 3px 8px #0006; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: center; }
 .本館-引き出しのタブ svg { width: 22px; height: 32px; display: block; filter: drop-shadow(0 0 5px #ffc85acc); pointer-events: none; }
@@ -128,9 +137,9 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しのタブ .本館-印 { position: absolute; top: -7px; left: -7px; min-width: 20px; height: 20px; border-radius: 10px; background: #c8352b; border: 1.5px solid #fffaf0; color: #fff; font-size: 11px; line-height: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; font-family: system-ui, sans-serif; }
 .本館-引き出しのタブ .本館-印:empty { display: none; }
 .本館-引き出しのタブ[hidden], .本館-引き出し[hidden] { display: none; }
-.本館-引き出し { position: absolute; top: 0; right: 0; bottom: var(--本館-kb); z-index: 5; width: min(420px, calc(100% - 34px)); display: flex; flex-direction: column; color: #5a4128; background: radial-gradient(ellipse at 50% 0%, #fff3d6 0%, #fffaf000 60%), #fffaf0f5; border-left: 2px solid #8a6a3c; box-shadow: -6px 0 18px #2e1a0b55, inset 6px 0 14px -10px #8a6a3c; transform: translateX(105%); transition: transform .22s ease; visibility: hidden; padding: 0 var(--本館-safe-r) 0 0;  box-sizing: border-box; font-family: "Kaisei Decol", "Yu Mincho", serif; }
+.本館-引き出し { position: absolute; top: 0; right: 0; bottom: var(--本館-kb); z-index: 5; width: var(--本館-引き出しの幅); display: flex; flex-direction: column; color: #5a4128; background: radial-gradient(ellipse at 50% 0%, #fff3d6 0%, #fffaf000 60%), #fffaf0f5; border-left: 2px solid #8a6a3c; box-shadow: -6px 0 18px #2e1a0b55, inset 6px 0 14px -10px #8a6a3c; transform: translateX(105%); transition: transform .22s ease; visibility: hidden; padding: 0 var(--本館-safe-r) 0 0;  box-sizing: border-box; font-family: "Kaisei Decol", "Yu Mincho", serif; }
 .本館-引き出し[data-開="1"] { transform: none; visibility: visible; }
-.本館-引き出し[data-開="1"] ~ .本館-引き出しのタブ, .本館-引き出しのタブ[data-開="1"] { right: min(420px, calc(100% - 34px)); }
+.本館-引き出し[data-開="1"] ~ .本館-引き出しのタブ, .本館-引き出しのタブ[data-開="1"] { right: var(--本館-引き出しの幅); }
 .本館-引き出しの頭 { display: flex; flex-direction: column; gap: 6px; padding: 8px 8px 8px 10px; margin-top: var(--本館-safe-t); color: #f6e7c4; text-shadow: 0 1px 2px #000; background: linear-gradient(#ffffff1a, #0000004d), var(--本館-木目) center / 220px, #7a5230; border-bottom: 2px solid #2e1a0b; box-shadow: 0 3px 8px #2e1a0b55; }
 .本館-引き出しの頭の上 { display: flex; align-items: center; gap: 6px; }
 .本館-引き出しの題 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; font-size: 14px; letter-spacing: .03em; }
