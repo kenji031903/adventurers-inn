@@ -80,6 +80,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-ページ[hidden] { display: none; }
 .本館-ページの頭 { display: flex; align-items: center; gap: 8px; height: calc(68px + var(--本館-safe-t)); padding: var(--本館-safe-t) 16px 0 76px; box-sizing: border-box; font-weight: 700; }
 .本館-ページの中 { position: relative; flex: 1; overflow: auto; }
+.本館-ページの中, .本館-小窓, .本館-板 { overscroll-behavior: contain; }
+.本館-小窓 [class], .本館-板 [class] { overscroll-behavior-y: auto; } 
 .本館-ページ[data-全画面] > .本館-ページの頭 { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .本館-ページ[data-透ける] { background: transparent; }
 .本館-ページ[data-壁] { background-color: var(--本館-床); background-image: linear-gradient(color-mix(in srgb, var(--本館-床) 70%, transparent), color-mix(in srgb, var(--本館-床) 70%, transparent)), var(--本館-壁); background-size: auto, 420px; background-repeat: repeat; }
@@ -128,6 +130,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-板の品[data-今="1"] { outline: 3px solid #3d8a4a; outline-offset: -3px; }
 .本館-板の盤 { height: clamp(150px, 24vh, 236px); }
 .本館-板の品[data-ならべる="1"] { touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.本館-板 .本館-板の盤 { overscroll-behavior: contain; } 
 .本館-板の盤 { overscroll-behavior: contain; padding-bottom: 10px; scroll-padding-bottom: 10px; } 
 .本館-板の品[data-動かす="1"] { transform: scale(1.08); outline: 3px solid #e0b040; outline-offset: -3px; }
 .本館-板の品[data-ここ="1"] { outline: 3px dashed #e0b040; outline-offset: -3px; }
