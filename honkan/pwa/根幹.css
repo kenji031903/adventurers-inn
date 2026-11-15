@@ -224,6 +224,12 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの札の並び { display: flex; gap: 8px; flex-wrap: wrap; }
 .本館-引き出しの札の並び[hidden] { display: none; }
 .本館-引き出しの札のたて { flex-direction: column; }
+.本館-引き出しの試しの見出し { align-self: stretch; margin: 6px 0 -2px; padding: 4px 8px; border-radius: 8px; background: #e3f1dc; color: #2f5d2a; font-size: 13px; font-weight: 700; text-align: center; }
+.本館-引き出しの札[data-試し="1"] { border-color: #6fae5e; background: #f7fcf2; box-shadow: 0 2px 6px #3d6a3333, inset 0 0 0 1px #ffffff; }
+.本館-引き出しの札[data-試し="1"] .本館-引き出しの札の題 { color: #2f5d2a; }
+.本館-引き出しの札の三つ { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.本館-引き出しの札の三つ > .本館-引き出しの答え { text-align: center; padding: 6px 4px; font-size: 14px; line-height: 1.25; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; }
+.本館-引き出しの札の三つ > .本館-引き出しの書く[hidden] { display: none; }
 .本館-引き出しの答え { min-height: var(--本館-小ボタン); flex: 1; border: 1.5px solid #c8ab6c; border-radius: 10px; background: #fbf1da; color: #4a3520; font: inherit; font-size: 15px; text-align: left; padding: 8px 12px; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの答え[aria-pressed="true"] { background: #f6dc9a; border-color: #8a6a3c; box-shadow: inset 0 0 0 2px #e0b040; font-weight: 700; }
 .本館-引き出しの答え[aria-pressed="true"]::after { content: " ✓"; color: #3d8a4a; }
