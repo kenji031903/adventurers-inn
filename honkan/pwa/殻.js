@@ -154,7 +154,7 @@
   }
   // 預けたときに本館へ返す形（本館は「届いた」と同じように描く）
   var 書く = {
-    '根幹/引き出しで話す': { 文: '（宿とまだつながっていないので、この端末に預けたよ。つながったら届けるね）' },
+    '根幹/引き出しで話す': { 文: '考え中…' }, // 版100 頼み300（作業係K16）: 預けたよ の字は出さない（本館はふつうの 考え中… の泡にする。古い本館にもこの字が出る）
     '根幹/引き出しの答え': { 預けた: true },
     '郵便箱/送る': { 預けた: true },
     '朝の作戦会議/タスクを済に': { 預けた: true },
@@ -194,6 +194,11 @@
     });
   }
   var 写しの印 = {}, 新しくなった人 = [], 預けが届いた人 = [];
+  // 版100 頼み300（作業係K16）: 電波はあるのに橋がまだ（開いたすぐあと）なら、少し待ってから送る（すぐ端末に預けない）
+  function 橋を待つ(ms) {
+    if (橋.用意()) return Promise.resolve(true);
+    return new Promise(function (ok) { var t0 = Date.now(); (function 見る() { if (橋.用意()) return ok(true); if (!navigator.onLine || Date.now() - t0 > ms) return ok(false); setTimeout(見る, 250); })(); });
+  }
 
   var 殻の口 = {
     呼ぶ: function (塊, すること, データ) {
@@ -202,13 +207,13 @@
         var 預けた形 = function (手紙) { 板を描き直す(); var o = JSON.parse(JSON.stringify(書く[名])); if (手紙) o.預けた手紙 = 手紙.id; return o; }; // 頼み270: どの手紙かの印
         return 列P.then(function (列) {
           return 列.足す(塊, すること, データ).then(function (手紙) {
-            if (!navigator.onLine || !橋.用意()) { 同期を頼む(); return 預けた形(手紙); }
-            return 一通送る(手紙).then(function (r) {
+            if (!navigator.onLine) { 同期を頼む(); return 預けた形(手紙); }
+            return 橋を待つ(12000).then(function (ok) { if (!ok) { 同期を頼む(); return 預けた形(手紙); } return 一通送る(手紙).then(function (r) {
               return 列.消す(手紙.id).then(function () {
                 if (r && r.はじいた) throw new Error(r.はじいた); // 宿がことわった → 今までどおり、その場でまちがいを返す
                 板を描き直す(); return r && '答え' in r ? r.答え : 預けた形();
               });
-            }, function () { 同期を頼む(); return 預けた形(手紙); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
+            }, function () { 同期を頼む(); return 預けた形(手紙); }); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
           });
         });
       }
