@@ -178,7 +178,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの前:active { transform: translateY(2px); }
 .本館-引き出しの新着 { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); min-height: var(--本館-小ボタン); padding: 6px 16px; border: 2px solid #8a6a3c; border-radius: 999px; background: #f6dc9a; color: #4a3520; font: inherit; font-size: 14px; font-weight: 700; box-shadow: 0 2px 6px #8a6a3c55; cursor: pointer; touch-action: manipulation; white-space: nowrap; }
 .本館-引き出しの新着[hidden] { display: none; }
-.本館-引き出しの泡 { max-width: 86%; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: #fffdf6; border: 1.5px solid #c8ab6c; box-shadow: 0 2px 4px #8a6a3c26; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; align-self: flex-start; color: #4a3520; } 
+.本館-引き出しの泡 { max-width: 86%; padding: 8px 12px; border-radius: 12px 12px 12px 4px; background: #fffdf6; border: 1.5px solid #c8ab6c; box-shadow: 0 2px 4px #8a6a3c26; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; align-self: flex-start; color: #4a3520; contain: layout style; } 
 .本館-引き出しの泡 b { display: block; font-size: 12px; color: #a0602a; letter-spacing: .04em; }
 .本館-引き出しの泡[data-だれ="けんじ"] { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: linear-gradient(#f9e2ae, #f0cd84); border-color: #b98a3e; color: #3b2a18; }
 .本館-引き出しの泡[data-だれ="知らせ"] { align-self: center; background: transparent; border: 0; box-shadow: none; color: #8a6a3c; font-size: 13px; }
