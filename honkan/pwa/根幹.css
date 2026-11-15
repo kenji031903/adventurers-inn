@@ -305,3 +305,9 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-板の自分の品 button { padding: 0 2px; font-size: 12px; }
 .本館-板の自分の品名 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: #3a2a18; }
 .本館-板の自分の品 button[data-待ち] { color: #fff; background: #9a2a1a; }
+.本館-板の自分の種 button[aria-pressed="true"], .本館-板の自分のアプリ[aria-pressed="true"] { color: #fff; background: #7a5530; border-color: #5a3a1f; }
+.本館-板の自分のアプリ棚 { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; min-width: 0; }
+.本館-板の自分のアプリ { overflow: hidden; text-overflow: ellipsis; }
+.本館-板の自分の絵行 { display: grid; grid-template-columns: 64px repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; min-width: 0; align-items: center; }
+.本館-板の自分の絵 { min-width: 0; height: 36px; text-align: center; font-size: 18px; }
+.本館-板の自分の絵候補 { padding: 0; font-size: 18px; }
