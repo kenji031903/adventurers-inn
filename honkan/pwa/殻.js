@@ -120,6 +120,8 @@
         if (e && e.運び) throw e; // 電波・時間切れ → 列に残して、次の機会に同じ id で送る
         return { はじいた: String(e && e.message || e) }; // 宿がことわった → 脇へよけて、うしろを詰まらせない
       });
+    // 版86 頼み270（作業係K2）: 預けた手紙が宿へ届いたら、本館に知らせる（本館は 預けたよ の泡を、本物の返事の泡に差しかえる）
+    p.then(function (r) { if (r && (r.受けた || r.もう受けた) && !r.はじいた) 預けが届いた人.forEach(function (f) { try { f(手紙.id, 手紙.塊, 手紙.すること, r.答え); } catch (e) { /* ほかへ知らせる */ } }); }, function () { /* 列に残る */ });
     送り中[手紙.id] = p;
     var 外す = function () { delete 送り中[手紙.id]; };
     p.then(外す, 外す);
@@ -191,22 +193,22 @@
       });
     });
   }
-  var 写しの印 = {}, 新しくなった人 = [];
+  var 写しの印 = {}, 新しくなった人 = [], 預けが届いた人 = [];
 
   var 殻の口 = {
     呼ぶ: function (塊, すること, データ) {
       var 名 = 塊 + '/' + すること;
       if (書く[名]) {
-        var 預けた形 = function () { 板を描き直す(); return JSON.parse(JSON.stringify(書く[名])); };
+        var 預けた形 = function (手紙) { 板を描き直す(); var o = JSON.parse(JSON.stringify(書く[名])); if (手紙) o.預けた手紙 = 手紙.id; return o; }; // 頼み270: どの手紙かの印
         return 列P.then(function (列) {
           return 列.足す(塊, すること, データ).then(function (手紙) {
-            if (!navigator.onLine || !橋.用意()) { 同期を頼む(); return 預けた形(); }
+            if (!navigator.onLine || !橋.用意()) { 同期を頼む(); return 預けた形(手紙); }
             return 一通送る(手紙).then(function (r) {
               return 列.消す(手紙.id).then(function () {
                 if (r && r.はじいた) throw new Error(r.はじいた); // 宿がことわった → 今までどおり、その場でまちがいを返す
                 板を描き直す(); return r && '答え' in r ? r.答え : 預けた形();
               });
-            }, function () { 同期を頼む(); return 預けた形(); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
+            }, function () { 同期を頼む(); return 預けた形(手紙); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
           });
         });
       }
@@ -215,7 +217,9 @@
       return 橋.呼ぶ(塊, すること, データ, 90000); // AI と話す・今すぐ など（その場だけ）
     },
     // 頼み251: 写しを出した読む頼みの、新しい分が遅れて届いたら f(塊, すること, データ, 中身) を呼ぶ（本館の根幹が引き出しの質問を描き直す）
-    新しくなったら: function (f) { if (typeof f === 'function') 新しくなった人.push(f); }
+    新しくなったら: function (f) { if (typeof f === 'function') 新しくなった人.push(f); },
+    // 頼み270: 預けた手紙が届いたら f(手紙のid, 塊, すること, 宿の答え) を呼ぶ
+    預けが届いたら: function (f) { if (typeof f === 'function') 預けが届いた人.push(f); }
   };
 
   // ==== ⚙ アプリ版（前の板。消さずにここへ）
