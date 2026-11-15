@@ -73,6 +73,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-吹き出し[data-針="上"]::after { bottom: auto; top: -9px; border-right: 0; border-bottom: 0; border-left: 1.5px solid var(--本館-吹きの枠); border-top: 1.5px solid var(--本館-吹きの枠); border-bottom-right-radius: 0; border-top-left-radius: 4px; }
 :root:has(.本館-小窓の幕[data-板]:not([hidden])) .本館-層[data-層="吹き出し"] { z-index: 55; }
 :root:has(.本館-小窓の幕[data-板]:not([hidden])) .本館-吹き出し { bottom: var(--本館-板の上, calc(var(--本館-帯) + 96px)); }
+:root:not(:has(.本館-小窓の幕[data-板]:not([hidden]))) .本館-吹き出し[data-よけ] { bottom: var(--本館-吹きのよけ); transition: bottom .2s ease-out; }
 .本館-吹き出し b { color: var(--本館-吹きの名); margin-right: 6px; }
 .本館-吹き出し[data-押せる="1"] { cursor: pointer; border-color: var(--本館-差し色); } 
 .本館-ページ { position: absolute; inset: 0; background: var(--本館-床); display: flex; flex-direction: column; }
