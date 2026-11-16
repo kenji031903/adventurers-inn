@@ -89,6 +89,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-知らせ[hidden] { display: none; }
 .本館-入力 { position: absolute; left: 0; right: 0; bottom: calc(var(--本館-kb) + var(--本館-帯));  display: flex; gap: 8px; padding: 8px 16px; background: var(--本館-面); border-top: 1px solid var(--本館-枠); box-sizing: border-box; }
 .本館-入力[hidden] { display: none; }
+.本館-入力 .本館-入力の閉じる { order: -1; min-width: 44px; width: 44px; padding: 0; background: var(--本館-床); color: var(--本館-文字); border: 1px solid var(--本館-枠); font-size: 18px; } 
+.本館-入力 .本館-入力の閉じる[hidden] { display: none; }
 .本館-入力 textarea { flex: 1; min-height: 44px; max-height: 30vh; font: inherit; border: 1px solid var(--本館-枠); border-radius: 10px; padding: 8px; box-sizing: border-box; background: var(--本館-床); color: var(--本館-文字); resize: none; }
 .本館-入力 button, .本館-小窓 button { min-width: 64px; min-height: 44px; border: 0; border-radius: 10px; background: var(--本館-差し色); color: #fff; font: inherit; font-weight: 700; }
 .本館-小窓の幕 { position: absolute; inset: 0; background: rgba(0, 0, 0, .35); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
@@ -187,8 +189,10 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの空:not(:nth-last-child(2)) { display: none; } 
 .本館-引き出しの何も { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; opacity: .55; white-space: pre-wrap; } 
 .本館-引き出しの何も[hidden] { display: none; }
-.本館-引き出しの前 { align-self: center; min-height: var(--本館-小ボタン); padding: 6px 16px; border: 1.5px solid #c8ab6c; border-radius: 999px; background: #fbf1da; color: #6e4a24; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+.本館-引き出しの前 { order: -1; flex-shrink: 0; width: 264px; max-width: 100%; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center; min-height: var(--本館-小ボタン); padding: 6px 16px; border: 1.5px solid #c8ab6c; border-radius: 999px; background: #fbf1da; color: #6e4a24; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの前[hidden] { display: none; }
+.本館-引き出しの前[aria-disabled="true"] { opacity: .5; cursor: default; }  
+.本館-引き出しの前[aria-disabled="true"]:active { transform: none; }
 .本館-引き出しの前:active { transform: translateY(2px); }
 .本館-引き出しの新着 { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); min-height: var(--本館-小ボタン); padding: 6px 16px; border: 2px solid #8a6a3c; border-radius: 999px; background: #f6dc9a; color: #4a3520; font: inherit; font-size: 14px; font-weight: 700; box-shadow: 0 2px 6px #8a6a3c55; cursor: pointer; touch-action: manipulation; white-space: nowrap; }
 .本館-引き出しの新着[hidden] { display: none; }
