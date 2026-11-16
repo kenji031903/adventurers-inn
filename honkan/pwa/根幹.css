@@ -191,6 +191,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの泡[data-だれ="けんじ"] { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: linear-gradient(#f9e2ae, #f0cd84); border-color: #b98a3e; color: #3b2a18; }
 .本館-引き出しの泡[data-だれ="知らせ"] { align-self: center; background: transparent; border: 0; box-shadow: none; color: #8a6a3c; font-size: 13px; }
 .本館-引き出しの泡[data-待ち="1"] .本館-引き出しの文 { color: #9a8462; }
+.本館-引き出しの泡[data-よそ="1"] { display: none !important; } 
 .本館-引き出しの泡[data-裏="1"] { align-self: center; max-width: 94%; padding: 6px 10px; border-radius: 10px; white-space: normal; font-size: 13px; line-height: 1.45; }
 .本館-引き出しの折りたたみ { width: 100%; }
 .本館-引き出しの見出し { cursor: pointer; font-weight: 700; list-style: none; user-select: none; -webkit-user-select: none; min-height: 32px; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; }
