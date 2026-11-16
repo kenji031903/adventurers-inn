@@ -71,7 +71,8 @@
       枠.src = 設定.橋;
       setTimeout(function () {
         if (用意 || 知らせた) return; 知らせた = true;
-        知らせ(navigator.onLine ? '宿の本番とまだつながらないよ（⚙ のアプリ版から本番を開けるよ）' : '電波なし。手もとの写しで動いているよ（送る言葉は預かるね）');
+        // 頼み357（K25）: 会社のパソコンのブラウザなど、見えない橋だけがはじかれるときがある。本番を直接開く道を先に言う
+        知らせ(navigator.onLine ? '宿の本番とつながらないよ。⚙ のアプリ版 →「宿の本番を開く」で直接開けるよ' : '電波なし。手もとの写しで動いているよ（送る言葉は預かるね）');
         用意待ち.splice(0).forEach(function (w) { w.ng(new Error('橋がまだ')); });
       }, 20000);
     }
@@ -255,7 +256,7 @@
       '<section><h2>クエストの掲示板</h2><ul data-id="掲示板"></ul></section>' +
       '<section data-区画="書庫"><h2>知識の書庫（本文はこの端末の中だけ）</h2><ul class="apb-書庫" data-id="書庫"></ul><div class="apb-本" data-id="本"></div></section>' +
       '<section><button class="apb-本番" data-id="更新">🔄 宿を新しくする</button></section>' +
-      '<section><button class="apb-本番" data-id="本番">宿の本番を開く（つながっているときだけ）</button></section>' +
+      '<section><button class="apb-本番" data-id="本番">宿の本番を開く（橋がつながらないときも、ここから直接）</button></section>' +
       '<section><p class="apb-小">装い: <span data-id="モード"></span><br><span data-id="版"></span></p>' +
       '<p class="apb-小">手もとの保存（写し・送り待ち・書庫）: <span data-id="保存"></span></p>' +
       '<p class="apb-小">宿の鍵（パソコンで作った長い合言葉。この端末だけにしまう。掲示板と書庫の分だけに使う）: <span data-id="鍵の様子"></span></p>' +
@@ -264,7 +265,10 @@
     var $ = function (id) { return 地.querySelector('[data-id="' + id + '"]'); };
     板 = { 地: 地, $: $, 描く: function () {
       var b = 橋.様子();
-      $('橋').textContent = b.用意 ? 'つながっている（チャット・郵便箱は、ここを通って宿へ届く）' : (navigator.onLine ? 'つなぎ中…（' + b.秒 + '秒）' : '電波なし');
+      // 頼み357（K25）: 20秒たってもつながらないときは、考えられるわけと、次にすることを出す
+      $('橋').textContent = b.用意 ? 'つながっている（チャット・郵便箱は、ここを通って宿へ届く）' : !navigator.onLine ? '電波なし'
+        : b.秒 < 20 ? 'つなぎ中…（' + b.秒 + '秒）'
+        : 'つながらない（' + b.秒 + '秒）。考えられるわけ: ブラウザがほかのサイトのクッキーを止めている／会社の Google アカウントでログインしている／会社の網が script.google.com を止めている。下の「宿の本番を開く」なら直接開けることが多いよ';
       列P.then(function (列) { return Promise.all([列.数(), 列.止まった()]); }).then(function (a) {
         if (!板) return; $('列').textContent = '預かっている言葉: ' + a[0] + ' 通' + (a[1].length ? '（宿がことわった ' + a[1].length + ' 通は、消さずに残してある）' : '') + '／写しで先に出した回数: ' + 写しの数.出した;
       });
