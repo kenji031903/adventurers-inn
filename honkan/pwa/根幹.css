@@ -338,3 +338,27 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-板の自分の絵行 { display: grid; grid-template-columns: 64px repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; min-width: 0; align-items: center; }
 .本館-板の自分の絵 { min-width: 0; height: 36px; text-align: center; font-size: 18px; }
 .本館-板の自分の絵候補 { padding: 0; font-size: 18px; }
+.本館-まとめの帯 { position: absolute; top: calc(var(--本館-safe-t) + 12px); left: 76px; right: 12px; height: 44px; z-index: 6; display: flex; gap: 6px; padding: 3px; box-sizing: border-box; border-radius: 22px; background: linear-gradient(180deg, color-mix(in srgb, var(--本館-面) 92%, #fff), var(--本館-面)); border: 1.5px solid color-mix(in srgb, var(--本館-差し色) 45%, var(--本館-枠)); box-shadow: 0 2px 8px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .5); }
+.本館-まとめの帯 > button { position: relative; flex: 1 1 0; min-width: 0; height: 36px; border: 0; border-radius: 18px; background: transparent; color: var(--本館-文字); font: inherit; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 0 4px; white-space: nowrap; overflow: visible; cursor: pointer; }
+.本館-まとめの帯 > button[aria-selected="true"] { background: linear-gradient(180deg, color-mix(in srgb, var(--本館-差し色) 80%, #fff), var(--本館-差し色)); color: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.本館-まとめの帯 .本館-まとめの名 { overflow: hidden; text-overflow: ellipsis; }
+.本館-ページ[data-まとめ] > .本館-ページの頭 { color: transparent; }
+.本館-ページ[data-まとめ] > .本館-ページの中 { padding-top: 0; }
+.本館-板の品, .本館-まとめの帯 > button { position: relative; }
+.本館-板の印 { position: absolute; top: 0; right: 2px; min-width: 18px; height: 18px; border-radius: 9px; background: #c8352b; border: 1.5px solid #fffaf0; color: #fff; font-size: 11px; font-weight: 700; line-height: 15px; text-align: center; padding: 0 4px; box-sizing: border-box; pointer-events: none; }
+.本館-まとめの帯 .本館-板の印 { top: -6px; right: -2px; }
+.本館-板の印:empty { display: none; }
+.本館-小窓[data-豪華] { border: 2px solid color-mix(in srgb, #d4a73c 70%, var(--本館-枠)); background: linear-gradient(180deg, color-mix(in srgb, #fff3d6 18%, var(--本館-面)), var(--本館-面) 40%); box-shadow: var(--本館-影), 0 0 0 4px color-mix(in srgb, #d4a73c 18%, transparent), inset 0 1px 0 rgba(255, 255, 255, .45); }
+.本館-小窓[data-豪華] h2 { text-align: center; letter-spacing: .04em; padding-bottom: 8px; border-bottom: 1px solid color-mix(in srgb, #d4a73c 45%, transparent); }
+.本館-小窓の中身 { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.本館-小窓の段の題 { font-size: 13px; font-weight: 700; opacity: .8; margin: 8px 0 2px; display: flex; align-items: center; gap: 6px; }
+.本館-小窓の段の題::before, .本館-小窓の段の題::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, #d4a73c 45%, transparent); }
+.本館-小窓 .本館-小窓の段.本館-小窓のボタン, .本館-小窓の段 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; justify-content: normal; margin-top: 0; }
+.本館-小窓の段 > button { width: 100%; min-height: 44px; }
+.本館-小窓の段 > button[data-今] { box-shadow: 0 0 0 3px color-mix(in srgb, #d4a73c 75%, transparent); }
+.本館-小窓の段 > button[data-今]::after { content: " ✓"; }
+.本館-音の行 { display: grid; grid-template-columns: 4.5em 64px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 48px; }
+.本館-音の行 .本館-音の名 { font-weight: 700; }
+.本館-音の行 input[type="range"] { width: 100%; height: 32px; accent-color: var(--本館-差し色); }
+.本館-音の行 > button.本館-控えめ { grid-column: 2 / -1; justify-self: start; }
+:root[data-工房の席="見せる"] .本館-まとめの帯 { right: calc(24px + var(--本館-小ボタン) + var(--本館-safe-r)); }
