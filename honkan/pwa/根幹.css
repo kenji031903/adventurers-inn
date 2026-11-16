@@ -251,6 +251,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの札の三つ { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 .本館-引き出しの札の三つ > .本館-引き出しの答え { text-align: center; padding: 6px 4px; font-size: 14px; line-height: 1.25; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; }
 .本館-引き出しの札の三つ > .本館-引き出しの書く[hidden] { display: none; }
+.本館-引き出しの札の三つ > * { min-width: 0; }
+.本館-引き出しの札の三つ > .本館-引き出しの書く { grid-column: 1 / -1; }
 .本館-引き出しの答え { min-height: var(--本館-小ボタン); flex: 1; border: 1.5px solid #c8ab6c; border-radius: 10px; background: #fbf1da; color: #4a3520; font: inherit; font-size: 15px; text-align: left; padding: 8px 12px; cursor: pointer; touch-action: manipulation; }
 .本館-引き出しの答え[aria-pressed="true"] { background: #f6dc9a; border-color: #8a6a3c; box-shadow: inset 0 0 0 2px #e0b040; font-weight: 700; }
 .本館-引き出しの答え[aria-pressed="true"]::after { content: " ✓"; color: #3d8a4a; }
@@ -291,7 +293,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの描く-絵 { flex: 1 1 auto; min-height: 0; width: 100%; object-fit: contain; touch-action: none; background: #000; border-radius: 8px; }
 .本館-引き出しの荷の品 {border: 1.5px solid #c8ab6c; border-radius: 12px; background: #fffdf6; color: #4a3520; font: inherit; font-size: 13px; padding: 4px 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .本館-引き出しの下 { position: relative; padding: 6px 6px 8px; margin-bottom: var(--本館-safe-b); border-top: 2px solid #8a6a3c; background: linear-gradient(#f6e7c4, #efdcb2); box-shadow: 0 -2px 8px #8a6a3c33; }
-.本館-引き出しの欄 { width: 100%; box-sizing: border-box; resize: none; border: 1.5px solid #c8ab6c; border-radius: 10px; padding: 7px 8px; font: inherit; font-size: 16px; line-height: 1.45; background: #fffdf6; color: #4a3520; max-height: calc(3 * 1.45em + 16px); overflow-y: auto; } 
+.本館-引き出しの欄 { width: 100%; box-sizing: border-box; resize: none; border: 1.5px solid #c8ab6c; border-radius: 10px; padding: 7px 8px; font: inherit; font-size: 16px; line-height: 1.45; background: #fffdf6; color: #4a3520; max-height: 45vh; overflow-y: auto; } 
 .本館-引き出しの欄:focus { outline: none; border-color: #8a6a3c; box-shadow: 0 0 0 2px #e0b04066; }
 .本館-引き出しの並び { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .本館-引き出しのすき間 { flex: 1; }
