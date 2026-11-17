@@ -65,6 +65,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 :root[data-本館-ゲーム中] .本館-層[data-層="知らせ"] > :is(.本館-塊の箱, .本館-引き出しのタブ, .本館-引き出し, .本館-引き出しの幕) { visibility: hidden; pointer-events: none; }
 .本館-ゲームのマイク { position: fixed; z-index: 5; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #ffffff8c; background: #1a1430b3; color: #fff; font-size: 20px; line-height: 1; padding: 0; cursor: pointer; box-shadow: 0 2px 8px #0006; opacity: .82; touch-action: manipulation; }
 .本館-ゲームのマイク[hidden] { display: none; }
+.本館-ゲームのホーム[data-聞く] { animation: none; background: #1a1430b3; box-shadow: 0 2px 8px #0006; }
 .本館-ゲームのマイク[data-聞く] { opacity: 1; background: #c2185bd9; box-shadow: 0 0 0 3px #ff80ab88, 0 2px 8px #0006; animation: 本館-ゲームの耳 1.4s ease-in-out infinite; }
 @keyframes 本館-ゲームの耳 { 50% { box-shadow: 0 0 0 7px #ff80ab33, 0 2px 8px #0006; } }
 .本館-ゲームの字幕 { position: fixed; z-index: 5; left: 50%; bottom: 14px; transform: translateX(-50%); max-width: min(calc(100vw - 32px), 420px); padding: 5px 12px; border-radius: 12px; background: #000000a6; color: #fff; font-size: 14px; line-height: 1.4; text-align: center; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
