@@ -191,6 +191,14 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの週 { flex: none; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.28); color: #f6e7c4; letter-spacing: .02em; }
 .本館-引き出しの週[data-警告="1"] { background: #c8352b; color: #fff; box-shadow: 0 0 6px rgba(200, 53, 43, 0.6); }
 .本館-引き出しの週[hidden] { display: none; }
+.本館-引き出しの週[data-量="1"] { display: flex; gap: 4px; padding: 0; background: none; box-shadow: none; }
+.本館-引き出しの週[data-量="1"][hidden] { display: none; }
+.本館-量の1つ { position: relative; flex: none; width: 48px; height: 16px; border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.28); color: #f6e7c4; }
+.本館-量の1つ[hidden] { display: none; }
+.本館-量の棒 { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(246, 231, 196, 0.3); }
+.本館-量の字 { position: relative; display: block; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; white-space: nowrap; letter-spacing: 0; }
+.本館-量の1つ[data-警告="1"] { background: #c8352b; color: #fff; box-shadow: 0 0 6px rgba(200, 53, 43, 0.6); }
+.本館-量の1つ[data-警告="1"] .本館-量の棒 { background: rgba(255, 255, 255, 0.3); }
 .本館-引き出しの窓たち { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .本館-引き出しの様子 { margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 244, 214, 0.9); color: #5a4630; font-size: 12px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 .本館-引き出しの様子[hidden] { display: none; }
