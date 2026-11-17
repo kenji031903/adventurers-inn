@@ -63,6 +63,8 @@
     function 受けてよい(o) { return /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(o) || (試しの場所 && 試しの場所 !== 'https://script.google.com' && o === 試しの場所); }
     function 作る() {
       用意 = false; 始め = Date.now();
+      // 作り直すときは、古い枠に頼んで返事待ちのものを、すぐ 運び のまちがいで返す（書く頼みは列に残り、用意できた で同じ id のまま送り直す）
+      Object.keys(待ち).forEach(function (k) { var w = 待ち[k]; delete 待ち[k]; clearTimeout(w.tm); w.ng(運びのまちがい('橋を作り直した')); });
       if (!枠) {
         枠 = document.createElement('iframe'); 枠.title = '本館の橋'; 枠.setAttribute('aria-hidden', 'true'); 枠.tabIndex = -1;
         枠.style.cssText = 'position:fixed;width:1px;height:1px;left:-10px;top:-10px;border:0;opacity:0;pointer-events:none';
@@ -99,13 +101,33 @@
       return 用意を待つ(20000).then(function () {
         return new Promise(function (ok, ng) {
           var n = ++番; var w = { ok: ok, ng: ng };
-          w.tm = setTimeout(function () { delete 待ち[n]; ng(運びのまちがい('時間切れ')); }, ms || 60000);
+          w.tm = setTimeout(function () { delete 待ち[n]; ng(運びのまちがい('時間切れ')); 傷んだら作り直す(); }, ms || 60000);
           待ち[n] = w;
           try { 相手.postMessage({ '橋': '呼ぶ', n: n, '塊': 塊, 'すること': すること, 'データ': データ == null ? null : データ }, 相手の場所); } catch (e) { delete 待ち[n]; clearTimeout(w.tm); ng(運びのまちがい(String(e))); }
         });
       });
     }
-    window.addEventListener('online', function () { if (!用意) { 知らせた = false; 作る(); } else 送り待ちを流す(); });
+    // 2026-11-17 頼み411の続き（けんじ: 機内モードのあと、質問箱の答えも ふつうのチャットも 届かない）: 電波が切れると、見えない枠の本館が
+    // 死んだまま 用意 だけ残り、そのあと全部が 時間切れ → 列に残る、になっていた。たとえ: 糸電話の糸が切れたのに、つながっている札だけ残っていた
+    // → 電波が戻ったとき・画面に戻ったときに枠が生きているか見て、死んでいたら作り直す（用意できた で列を流す）。時間切れのときも作り直す
+    var 作り直した = 0;
+    function 傷んだら作り直す() {
+      if (!navigator.onLine || Date.now() - 作り直した < 15000) return; // 続けて作り直さない
+      作り直した = Date.now(); 知らせた = true; 作る();
+    }
+    // 電波が戻ったら、まず軽い問い合わせ（装いを読む）で枠が生きているか見る。10秒で返らなければ作り直す（用意できた で列を流す）
+    var 確かめ中 = false;
+    function 生きているか見て流す() {
+      if (!navigator.onLine || 確かめ中) return;
+      if (!用意) { if (Date.now() - 始め > 20000) { 知らせた = false; 作り直した = Date.now(); 作る(); } return; } // 作っている途中なら待つ
+      確かめ中 = true;
+      呼ぶ('根幹', '装いを読む', null, 10000).then(function () { 確かめ中 = false; 送り待ちを流す(); }, function () { 確かめ中 = false; 知らせた = false; 傷んだら作り直す(); });
+    }
+    window.addEventListener('online', 生きているか見て流す);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState !== 'visible' || !navigator.onLine) return;
+      生きているか見て流す();
+    });
     return { 作る: 作る, 呼ぶ: 呼ぶ, 用意: function () { return 用意; }, 様子: function () { return { 用意: 用意, 待ち: Object.keys(待ち).length, 秒: 始め ? Math.round((Date.now() - 始め) / 1000) : 0 }; } };
   })();
   function 運びのまちがい(わけ) { var e = new Error(わけ); e.運び = true; return e; }
