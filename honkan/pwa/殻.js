@@ -37,7 +37,7 @@
     if (鍵の作り中) { 言う('いま鍵を作っているよ…'); return; }
     if (設定.鍵 && Date.now() - 作り直しの念押し > 6000) { 作り直しの念押し = Date.now(); 言う('この端末の鍵はもうあるよ。作り直すなら、もう一度押してね'); return; }
     作り直しの念押し = 0; 鍵の作り中 = true; 言う(名前 + 'の鍵を作っているよ…');
-    橋.呼ぶ('根幹', 'スマホ版の鍵', { 名前: 名前, そのまま: true }, 60000).then(function (r) {
+    橋.呼ぶ('根幹', 'スマホ版の鍵', { 名前: 名前, そのまま: true }, 20000).then(function (r) {
       var k = r && typeof r.鍵 === 'string' ? r.鍵 : '';
       if (k.length < 32) throw new Error('鍵が来なかった');
       鍵をしまう(k); k = '';
@@ -59,12 +59,17 @@
   // ==== 橋（見えない枠の中の本館の GAS）
   var 橋 = (function () {
     var 枠 = null, 相手 = null, 相手の場所 = '', 用意 = false, 番 = 0, 待ち = {}, 用意待ち = [], 始め = 0, 知らせた = false;
+    // 頼み412: 作り中 = 作り直している印（作り直しは1回だけ・2つ目は作らない）。橋ping = 小窓が ping に答えられる版か。ぽん待ち = 1段目の返事待ち
+    var 作り中 = false, 世 = 0, 橋ping = false, ぽん待ち = {}, 確かめ中 = null;
     var 試しの場所 = ''; try { 試しの場所 = new URL(設定.橋, location.href).origin; } catch (e) { 試しの場所 = ''; }
     function 受けてよい(o) { return /^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/.test(o) || (試しの場所 && 試しの場所 !== 'https://script.google.com' && o === 試しの場所); }
     function 作る() {
-      用意 = false; 始め = Date.now();
+      用意 = false; 始め = Date.now(); 作り中 = true; var 自分の世 = ++世;
+      // 20秒たっても 用意できた が来ない作りは、死んだものとして 作り中 を外す（次の見回りが作り直せる）
+      setTimeout(function () { if (世 === 自分の世) 作り中 = false; }, 20000);
       // 作り直すときは、古い枠に頼んで返事待ちのものを、すぐ 運び のまちがいで返す（書く頼みは列に残り、用意できた で同じ id のまま送り直す）
       Object.keys(待ち).forEach(function (k) { var w = 待ち[k]; delete 待ち[k]; clearTimeout(w.tm); w.ng(運びのまちがい('橋を作り直した')); });
+      if (枠 && 枠.parentNode) { 枠.parentNode.removeChild(枠); 枠 = null; } // 頼み412: 作り直しは 枠ごと作り直す（同じ住所をもう一度入れても、#つきだと ページが読み直されないため）
       if (!枠) {
         枠 = document.createElement('iframe'); 枠.title = '本館の橋'; 枠.setAttribute('aria-hidden', 'true'); 枠.tabIndex = -1;
         枠.style.cssText = 'position:fixed;width:1px;height:1px;left:-10px;top:-10px;border:0;opacity:0;pointer-events:none';
@@ -81,9 +86,11 @@
     window.addEventListener('message', function (ev) {
       var d = ev.data; if (!d || typeof d !== 'object' || typeof d['橋'] !== 'string' || !受けてよい(ev.origin)) return;
       if (d['橋'] === '用意できた') {
-        相手 = ev.source; 相手の場所 = ev.origin; 用意 = true;
+        相手 = ev.source; 相手の場所 = ev.origin; 用意 = true; 作り中 = false; 橋ping = d.ping === 1 || d.ping === true;
         用意待ち.splice(0).forEach(function (w) { clearTimeout(w.tm); w.ok(); });
         板を描き直す(); 送り待ちを流す();
+      } else if (d['橋'] === 'ぽん') {
+        var q = ぽん待ち[d.n]; if (q) { delete ぽん待ち[d.n]; q(true); }
       } else if (d['橋'] === '返事' && 待ち[d.n]) {
         var w = 待ち[d.n]; delete 待ち[d.n]; clearTimeout(w.tm);
         if (d.ok) { var r = d.r; try { r = typeof r === 'string' ? JSON.parse(r) : r; } catch (e) { /* そのまま */ } w.ok(r); } else { var er = new Error(String(d['わけ'] || '宿がことわった')); er.運び = /network|connection|HTTP 0|timed? ?out|failed to fetch/i.test(er.message); w.ng(er); }
@@ -93,15 +100,15 @@
       if (用意) return Promise.resolve();
       if (!navigator.onLine) return Promise.reject(運びのまちがい('電波なし'));
       return new Promise(function (ok, ng) {
-        var w = { ok: ok, ng: ng }; w.tm = setTimeout(function () { var i = 用意待ち.indexOf(w); if (i >= 0) 用意待ち.splice(i, 1); ng(運びのまちがい('橋がまだ')); }, ms);
+        var w = { ok: ok, ng: ng }; w.tm = setTimeout(function () { var i = 用意待ち.indexOf(w); if (i >= 0) 用意待ち.splice(i, 1); ng(運びのまちがい('橋がまだ')); 傷んだら作り直す(); }, ms);
         用意待ち.push(w);
       });
     }
-    function 呼ぶ(塊, すること, データ, ms) {
+    function 呼ぶ(塊, すること, データ, ms, 作り直さない) {
       return 用意を待つ(20000).then(function () {
         return new Promise(function (ok, ng) {
           var n = ++番; var w = { ok: ok, ng: ng };
-          w.tm = setTimeout(function () { delete 待ち[n]; ng(運びのまちがい('時間切れ')); 傷んだら作り直す(); }, ms || 60000);
+          w.tm = setTimeout(function () { delete 待ち[n]; ng(運びのまちがい('時間切れ')); if (!作り直さない) 傷んだか見て作り直す(); }, ms || 60000);
           待ち[n] = w;
           try { 相手.postMessage({ '橋': '呼ぶ', n: n, '塊': 塊, 'すること': すること, 'データ': データ == null ? null : データ }, 相手の場所); } catch (e) { delete 待ち[n]; clearTimeout(w.tm); ng(運びのまちがい(String(e))); }
         });
@@ -112,23 +119,49 @@
     // → 電波が戻ったとき・画面に戻ったときに枠が生きているか見て、死んでいたら作り直す（用意できた で列を流す）。時間切れのときも作り直す
     var 作り直した = 0;
     function 傷んだら作り直す() {
-      if (!navigator.onLine || Date.now() - 作り直した < 15000) return; // 続けて作り直さない
+      if (!navigator.onLine || 作り中 || Date.now() - 作り直した < 15000) return; // 作っている途中・続けては作り直さない
       作り直した = Date.now(); 知らせた = true; 作る();
     }
-    // 電波が戻ったら、まず軽い問い合わせ（装いを読む）で枠が生きているか見る。10秒で返らなければ作り直す（用意できた で列を流す）
-    var 確かめ中 = false;
-    function 生きているか見て流す() {
-      if (!navigator.onLine || 確かめ中) return;
-      if (!用意) { if (Date.now() - 始め > 20000) { 知らせた = false; 作り直した = Date.now(); 作る(); } return; } // 作っている途中なら待つ
-      確かめ中 = true;
-      呼ぶ('根幹', '装いを読む', null, 10000).then(function () { 確かめ中 = false; 送り待ちを流す(); }, function () { 確かめ中 = false; 知らせた = false; 傷んだら作り直す(); });
+    function 強く作り直す() { // 1段目で小窓が黙っていたとき: 15秒の決まりを待たず、すぐ作り直す（作っている途中なら作らない）
+      if (作り中) return;
+      作り直した = Date.now(); 知らせた = false; 作る();
     }
-    window.addEventListener('online', 生きているか見て流す);
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState !== 'visible' || !navigator.onLine) return;
-      生きているか見て流す();
-    });
-    return { 作る: 作る, 呼ぶ: 呼ぶ, 用意: function () { return 用意; }, 様子: function () { return { 用意: 用意, 待ち: Object.keys(待ち).length, 秒: 始め ? Math.round((Date.now() - 始め) / 1000) : 0 }; } };
+    // 頼み412 1段目: 小窓へ ping を送るだけ（宿のサーバーは呼ばない）。ms 待って ぽん が来れば true、来なければ false。
+    // 古い小窓（ping を知らない）・まだ用意できていないときは null（分からない）
+    function 窓へ声(ms) {
+      if (!用意 || !橋ping || !相手) return Promise.resolve(null);
+      return new Promise(function (ok) {
+        var n = ++番, tm = setTimeout(function () { delete ぽん待ち[n]; ok(false); }, ms);
+        ぽん待ち[n] = function (v) { clearTimeout(tm); ok(v); };
+        try { 相手.postMessage({ '橋': 'ping', n: n }, 相手の場所); } catch (e) { clearTimeout(tm); delete ぽん待ち[n]; ok(false); }
+      });
+    }
+    // 呼びかけが時間切れになったとき: 小窓が生きていれば（宿が遅いだけ）作り直さない。黙っていれば作り直す
+    function 傷んだか見て作り直す() {
+      if (作り中 || 確かめ中) return;
+      窓へ声(1000).then(function (生) { if (生 !== true) 傷んだら作り直す(); });
+    }
+    // 頼み412: 橋が生きているかの2段の確かめ（1つだけ走る。見回りも online も 画面が戻ったときも、この1つの印を共有する）
+    //  1段目: 小窓へ ping（約1秒・サーバーなし）。黙っていればすぐ作り直す
+    //  2段目: 宿へ軽い問い合わせ（装いを読む・約5秒）。1段目が通ったあとの失敗は、宿が遅いだけなので作り直さない
+    // 返事: '生きている' / '作り直した' / '作り中' / '電波なし' / '宿が遅い'
+    function 確かめる() {
+      if (!navigator.onLine) return Promise.resolve('電波なし');
+      if (確かめ中) return 確かめ中;
+      if (作り中) return Promise.resolve('作り中');
+      if (!用意) { 強く作り直す(); return Promise.resolve('作り直した'); }
+      var p = 窓へ声(1000).then(function (生) {
+        if (生 === false) { 強く作り直す(); return '作り直した'; }
+        return 呼ぶ('根幹', '装いを読む', null, 5000, true).then(function () { return '生きている'; }, function () {
+          if (生 === null) { 傷んだら作り直す(); return '作り直した'; } // 古い小窓: 1段目がないので、2段目の失敗で作り直す
+          return '宿が遅い';
+        });
+      }).then(function (r) { 確かめ中 = null; return r; }, function () { 確かめ中 = null; return '宿が遅い'; });
+      確かめ中 = p; return p;
+    }
+    // 電波が切れたら、作っていた途中の枠は死んだとみなす（戻ったとき、すぐ作り直せる）
+    window.addEventListener('offline', function () { if (!用意) 作り中 = false; });
+    return { 作る: 作る, 呼ぶ: 呼ぶ, 確かめる: 確かめる, 用意: function () { return 用意; }, 様子: function () { return { 用意: 用意, 作り中: 作り中, ping: 橋ping, 待ち: Object.keys(待ち).length, 秒: 始め ? Math.round((Date.now() - 始め) / 1000) : 0 }; } };
   })();
   function 運びのまちがい(わけ) { var e = new Error(わけ); e.運び = true; return e; }
 
@@ -138,7 +171,7 @@
   var 送り中 = {};
   function 一通送る(手紙) {
     if (送り中[手紙.id]) return 送り中[手紙.id];
-    var p = 橋.呼ぶ('根幹', '預けた手紙', { id: 手紙.id, 塊: 手紙.塊, すること: 手紙.すること, データ: 手紙.データ }, 60000)
+    var p = 橋.呼ぶ('根幹', '預けた手紙', { id: 手紙.id, 塊: 手紙.塊, すること: 手紙.すること, データ: 手紙.データ }, 20000) // 頼み412: 書く頼みは20秒（長く待たず、列に残して見回りが送り直す）
       .then(手もとの箱.答えを分ける, function (e) {
         if (e && e.運び) throw e; // 電波・時間切れ → 列に残して、次の機会に同じ id で送る
         return { はじいた: String(e && e.message || e) }; // 宿がことわった → 脇へよけて、うしろを詰まらせない
@@ -166,15 +199,49 @@
   function 閉じる前に() { 列P.then(function (列) { return 列.数(); }).then(function (n) { if (n > 0) 同期を頼む(); }).catch(function () { /* なし */ }); }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') 閉じる前に(); });
   window.addEventListener('pagehide', 閉じる前に);
-  var 流し中 = false;
-  function 送り待ちを流す() {
-    if (流し中 || !navigator.onLine || !橋.用意()) return;
-    流し中 = true;
-    列P.then(function (列) { return 列.流す(); }).then(function (r) {
-      流し中 = false; 板を描き直す();
-      if (r && r.送れた) 知らせ('預かっていた ' + r.送れた + ' 通を、宿へ届けたよ');
-    }, function () { 流し中 = false; });
+  var 流し中 = null;
+  function 送り待ちを流す(見回りから) {
+    if (流し中) return 流し中;
+    if (!navigator.onLine || !橋.用意()) return Promise.resolve(null);
+    流し中 = 列P.then(function (列) { return 列.流す(); }).then(function (r) {
+      流し中 = null; 板を描き直す();
+      if (r && r.送れた) { 見回りの間 = 見回りの最短; 知らせ('預かっていた ' + r.送れた + ' 通を、宿へ届けたよ'); }
+      if (!見回りから) 見回りを起こす();
+      return r;
+    }, function () { 流し中 = null; if (!見回りから) 見回りを起こす(); return null; });
+    return 流し中;
   }
+  // ==== 見回り（頼み412・ヒナタの講評）: 送り待ちに手紙があるあいだだけ、間をあけて橋を確かめて送り直す。3→6→12→24→30秒（最大30秒）
+  //  送れたら間を戻す・列が空なら止まる・電波なしや画面が隠れているあいだは何もしない（電池）。online と 画面が戻ったときはすぐ起こす
+  var 見回りの最短 = 3000, 見回りの最長 = 30000, 見回りの間 = 3000, 見回りの時計 = null;
+  function 見回りが動いてよい() { return document.visibilityState !== 'hidden'; } // 画面が隠れているあいだは止める（電池）。電波なしのときは、橋を確かめず 待つだけ（下の 見回る）
+  function 見回りを止める() { if (見回りの時計) { clearTimeout(見回りの時計); 見回りの時計 = null; } }
+  function 見回りを起こす(すぐ) {
+    if (!見回りが動いてよい()) { 見回りを止める(); return Promise.resolve(); }
+    return 列P.then(function (列) { return 列.数(); }).then(function (n) {
+      if (!n) { 見回りを止める(); 見回りの間 = 見回りの最短; return; } // 空 → 止める
+      if (見回りの時計 && !すぐ) return; // もう次が決まっている
+      見回りを止める(); 見回りの時計 = setTimeout(見回る, すぐ ? 0 : 見回りの間);
+    }).catch(function () { /* なし */ });
+  }
+  function 見回る() {
+    見回りの時計 = null;
+    if (!見回りが動いてよい()) return;
+    // 電波なし（navigator.onLine が false）: 橋は確かめず、間をあけて待つだけ。online の知らせが来なくても、戻ったのに気づける
+    if (!navigator.onLine) { 見回りの間 = Math.min(見回りの間 * 2, 見回りの最長); return 見回りを起こす(); }
+    橋.確かめる().then(function (r) { return r === '生きている' ? 送り待ちを流す(true) : null; }).then(function (r) {
+      if (!(r && r.送れた)) 見回りの間 = Math.min(見回りの間 * 2, 見回りの最長);
+      return 見回りを起こす();
+    }, function () { 見回りの間 = Math.min(見回りの間 * 2, 見回りの最長); return 見回りを起こす(); });
+  }
+  // 電波が戻ったとき・画面が見えるようになったとき: 手紙があってもなくても橋を確かめて（死んでいれば作り直し）、あれば流す
+  function 戻ったら見る() {
+    if (!見回りが動いてよい() || !navigator.onLine) return;
+    見回りの間 = 見回りの最短;
+    橋.確かめる().then(function (r) { return r === '生きている' ? 送り待ちを流す(true) : null; }).then(function () { return 見回りを起こす(); }, function () { return 見回りを起こす(); });
+  }
+  window.addEventListener('online', 戻ったら見る);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') 戻ったら見る(); else 見回りを止める(); });
   // 預けたときに本館へ返す形（本館は「届いた」と同じように描く）
   var 書く = {
     '根幹/引き出しで話す': { 文: '考え中…' }, // 版100 頼み300（作業係K16）: 預けたよ の字は出さない（本館はふつうの 考え中… の泡にする。古い本館にもこの字が出る）
@@ -230,13 +297,14 @@
         var 預けた形 = function (手紙) { 板を描き直す(); var o = JSON.parse(JSON.stringify(書く[名])); if (手紙) o.預けた手紙 = 手紙.id; return o; }; // 頼み270: どの手紙かの印
         return 列P.then(function (列) {
           return 列.足す(塊, すること, データ).then(function (手紙) {
-            if (!navigator.onLine) { 同期を頼む(); return 預けた形(手紙); }
-            return 橋を待つ(12000).then(function (ok) { if (!ok) { 同期を頼む(); return 預けた形(手紙); } return 一通送る(手紙).then(function (r) {
+            if (!navigator.onLine) { 見回りを起こす(); 同期を頼む(); return 預けた形(手紙); }
+            return 橋を待つ(12000).then(function (ok) { if (!ok) { 見回りを起こす(); 同期を頼む(); return 預けた形(手紙); } return 一通送る(手紙).then(function (r) {
               return 列.消す(手紙.id).then(function () {
+                見回りの間 = 見回りの最短;
                 if (r && r.はじいた) throw new Error(r.はじいた); // 宿がことわった → 今までどおり、その場でまちがいを返す
                 板を描き直す(); return r && '答え' in r ? r.答え : 預けた形();
               });
-            }, function () { 同期を頼む(); return 預けた形(手紙); }); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
+            }, function () { 見回りを起こす(); 同期を頼む(); return 預けた形(手紙); }); }); // 届かなかった → 列に残す（番頭さんか、次に開いたときに送る）
           });
         });
       }
@@ -462,6 +530,7 @@
   本館.開く(帳面, 殻の口);
   開くまで = Math.round(performance.now() - t0);
   橋.作る();
+  見回りを起こす(); // 前に預かった手紙が列に残っていれば、見回りを始める
   // 版71 頼み241④（作業係I）: パソコンでもスマホと同じに、手もとの箱（写し・送り待ち・書庫）を「消さないでね」と頼んでおく。
   //   たとえ: 宿の棚に「預かり物・捨てないで」の札を貼る。ブラウザが場所に困っても、札のある棚は片づけない（断られても、今までどおり動く）
   try {
@@ -473,7 +542,7 @@
   } catch (e) { /* 札がなくても動く */ }
   写しを出す().then(裏で読む);
   window.addEventListener('offline', function () { 帯('電波なし（手もとの写しで動いているよ）', '黄'); 板を描き直す(); });
-  window.addEventListener('online', function () { 裏で読む(); 送り待ちを流す(); });
+  window.addEventListener('online', function () { 裏で読む(); }); // 橋の確かめと送り直しは 見回り（戻ったら見る）が受け持つ
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(function () { /* 番頭さんなしでも動く */ });
     navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data && ev.data.番頭 === '新しい版') { 番頭の版 = '新しい版（' + ev.data.版 + '）を覚えたよ。使っていないときに自分で開き直すね'; if (板) 板.$('版').textContent = 番頭の版;
@@ -482,6 +551,7 @@
   }
   window.本館の殻 = {
     様子: function () { return { 橋: 橋.様子(), モード: モード, 写し: Object.keys(前の写し), 鍵: !!設定.鍵, 保存の札: 保存の札, 写しの数: 写しの数, 開くまで: 開くまで, 新しい版: { 待っている: 新しい版が待っている, 最初から番頭: 最初から番頭, 触った: 触った, 使っている: 使っている(), 鳴っている: 鳴らした.filter(function (a) { return !a.paused && !a.ended; }).map(function (a) { return String(a.currentSrc || a.src || '').split('/').pop().slice(0, 40) + (a.muted ? '（音なし）' : ''); }) } }; }, // 新しい版: 頼み203（元なし）
+    橋を確かめる: function () { return 橋.確かめる(); }, // 頼み412（試し用: 橋の2段の確かめを、いま1回やる）
     送り待ちの数: function () { return 列P.then(function (列) { return 列.数(); }); }
   };
 })();
