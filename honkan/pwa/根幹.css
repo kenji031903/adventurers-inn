@@ -46,6 +46,9 @@
   --本館-木の丸み: 6px;
   --本館-今の印: #e0b040;
 }
+*, *::before, *::after { -webkit-tap-highlight-color: transparent; }
+:where(button, [role=button], a, summary, label, img, svg) { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+:where(input, textarea, [contenteditable]) { -webkit-user-select: text; user-select: text; }
 html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(--本館-文字); font: var(--本館-字)/1.5 system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; }
 #本館 { position: fixed; inset: 0; overflow: hidden; }
 .本館-層 { position: absolute; inset: 0; pointer-events: none; }
