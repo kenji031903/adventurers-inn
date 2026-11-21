@@ -241,6 +241,9 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの泡[data-だれ="けんじ"] { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: linear-gradient(#f9e2ae, #f0cd84); border-color: #b98a3e; color: #3b2a18; }
 .本館-引き出しの泡[data-だれ="知らせ"] { align-self: center; background: transparent; border: 0; box-shadow: none; color: #8a6a3c; font-size: 13px; }
 .本館-引き出しの泡[data-待ち="1"] .本館-引き出しの文 { color: #9a8462; }
+.本館-引き出しの泡[data-時の字]::after { content: attr(data-時の字); display: block; margin-top: 2px; font-size: 11px; line-height: 1.2; text-align: right; color: var(--本館-薄い文字, #7a6a60); letter-spacing: .02em; white-space: nowrap; pointer-events: none; }
+.本館-引き出しの泡[data-時の字][data-待ち]::after, .本館-引き出しの泡[data-時の字][data-だれ="知らせ"]::after, .本館-引き出しの泡[data-時の字][data-裏="1"]::after { content: none; }
+.本館-引き出しの日 { align-self: center; flex-shrink: 0; padding: 2px 12px; border-radius: 999px; background: #f6ecd2; border: 1px solid #c8ab6c80; color: #8a6a3c; font-size: 12px; line-height: 1.5; letter-spacing: .04em; user-select: none; -webkit-user-select: none; } 
 .本館-引き出しの泡[data-よそ="1"] { display: none !important; } 
 .本館-引き出しの泡[data-裏="1"] { align-self: center; max-width: 94%; padding: 6px 10px; border-radius: 10px; white-space: normal; font-size: 13px; line-height: 1.45; }
 .本館-引き出しの折りたたみ { width: 100%; }
