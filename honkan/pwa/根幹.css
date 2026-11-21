@@ -179,7 +179,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの幕[data-開="1"] { opacity: 1; visibility: visible; }
 .本館-引き出しの幕 { pointer-events: none; background: radial-gradient(ellipse at 100% 50%, #3a221014, #1e120826); }
 .本館-引き出しの幕[hidden] { display: none; }
-.本館-引き出しのタブ { position: absolute; right: 0; top: 42%; z-index: 4; width: 32px; height: 60px; padding: 0; border: 2px solid #2e1a0b; border-right: 0; border-radius: 16px 0 0 16px; background: linear-gradient(90deg, #ffffff1f, #00000038), var(--本館-木目) center / 220px, #7a5230; box-shadow: inset 0 1px 0 #ffffff40, -2px 3px 8px #0006; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: center; }
+.本館-引き出しのタブ { position: absolute; right: 0; top: 32%; z-index: 4; width: 32px; height: 60px; padding: 0; border: 2px solid #2e1a0b; border-right: 0; border-radius: 16px 0 0 16px; background: linear-gradient(90deg, #ffffff1f, #00000038), var(--本館-木目) center / 220px, #7a5230; box-shadow: inset 0 1px 0 #ffffff40, -2px 3px 8px #0006; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: center; }
 .本館-引き出しのタブ svg { width: 22px; height: 32px; display: block; filter: drop-shadow(0 0 5px #ffc85acc); pointer-events: none; }
 .本館-引き出しのタブ[data-開="1"] { box-shadow: inset 0 1px 0 #ffffff40, -2px 3px 12px #ffb84a88; }
 .本館-引き出しのタブ .本館-印 { position: absolute; top: -7px; left: -7px; min-width: 20px; height: 20px; border-radius: 10px; background: #c8352b; border: 1.5px solid #fffaf0; color: #fff; font-size: 11px; line-height: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; font-family: system-ui, sans-serif; }
@@ -273,6 +273,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの札の題 { font-weight: 700; font-size: 14px; color: #5a4128; }
 .本館-引き出しの箱の名 { display: inline; min-height: 0; margin: 0 2px; padding: 1px 8px; border: 1.5px solid #c8ab6c; border-radius: 10px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 13px; cursor: pointer; touch-action: manipulation; word-break: break-all; text-align: left; } 
 .本館-引き出しの札の文 { white-space: pre-wrap; word-break: break-word; font-size: 14px; margin: 4px 0 8px; }
+.本館-引き出しの札[data-長い="1"]:not([data-開いた="1"]) .本館-引き出しの札の文 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; }
+.本館-引き出しの札[data-長い="1"] > .本館-引き出しの続き { margin: -4px 0 8px auto; }
 .本館-引き出しの札の並び { display: flex; gap: 8px; flex-wrap: wrap; }
 .本館-引き出しの札の並び[hidden] { display: none; }
 .本館-引き出しの札のたて { flex-direction: column; }
