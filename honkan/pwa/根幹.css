@@ -208,7 +208,8 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-量の字 { position: relative; display: block; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; white-space: nowrap; letter-spacing: 0; }
 .本館-量の1つ[data-警告="1"] { background: #c8352b; color: #fff; box-shadow: 0 0 6px rgba(200, 53, 43, 0.6); }
 .本館-量の1つ[data-警告="1"] .本館-量の棒 { background: rgba(255, 255, 255, 0.3); }
-.本館-引き出しの窓たち { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.本館-引き出しの窓たち { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; } 
+.本館-引き出しの窓たち .本館-引き出しの窓札 { font-size: 13px; padding: 0 3px; }
 .本館-引き出しの様子 { margin-top: 6px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 244, 214, 0.9); color: #5a4630; font-size: 12px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 .本館-引き出しの様子[hidden] { display: none; }
 .本館-引き出しの頭 .本館-引き出しの様子頭 { margin: 0; text-shadow: none; overflow-wrap: anywhere; }
@@ -307,6 +308,16 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの一つ:disabled { opacity: .6; }
 .本館-引き出しの一つ:active { transform: translateY(2px); box-shadow: none; }
 .本館-引き出しのまとめ:disabled { opacity: .6; }
+.本館-引き出しの頼みの列 > .本館-引き出しの空 { display: block; }
+.本館-引き出しの頼みの列 > .本館-引き出しの空[hidden] { display: none; }
+.本館-引き出しの頼み { display: flex; align-items: flex-start; gap: 10px; background: #fffdf6; border: 2px solid #e0b040; border-radius: 12px; padding: 8px 10px; box-shadow: 0 2px 6px #8a6a3c33; color: #4a3520; cursor: pointer; }
+.本館-引き出しの頼み input { flex: 0 0 auto; width: 24px; height: 24px; margin: 2px 0 0; accent-color: #7a5230; }
+.本館-引き出しの頼みの本 { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.本館-引き出しの頼みの頭 { font-size: 12px; font-weight: 700; color: #8a6a3c; overflow-wrap: anywhere; }
+.本館-引き出しの頼みの文 { font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.本館-引き出しの頼みの二つ { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 12px 8px; }
+.本館-引き出しの頼みの二つ[hidden] { display: none; }
+.本館-引き出しの頼みの二つ .本館-引き出しのまとめ { margin: 0; padding: 0 4px; font-size: 14px; }
 .本館-引き出しの貯め { display: flex; flex-direction: column; gap: 6px; padding: 6px 12px 6px; max-height: 26vh; overflow-y: auto; }
 .本館-引き出しの貯め[hidden] { display: none; }
 .本館-引き出しの貯め頭 { display: block; margin: 6px 12px 0; min-height: 40px; padding: 6px 12px; text-align: left; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #f3e4c0; color: #6e4a24; font: inherit; font-size: 14px; cursor: pointer; touch-action: manipulation; }
@@ -413,7 +424,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 :root[data-本館-Web窓] .本館-層[data-層="知らせ"] > .本館-塊の箱 { scale: .55; transform-origin: 0 100%; opacity: .92; }
 html[data-本館-小窓="1"] .本館-塊の箱[data-小窓で隠す] { visibility: hidden !important; pointer-events: none !important; }
 .本館-引き出しの欄 { max-height: min(calc(5.8em + 17px), 24vh); overflow-y: auto; }
-.本館-引き出しのまとめ, .本館-引き出しの荷, .本館-引き出しの下, .本館-引き出しの貯め頭 { flex-shrink: 0; }
+.本館-引き出しのまとめ, .本館-引き出しの荷, .本館-引き出しの下, .本館-引き出しの貯め頭, .本館-引き出しの頼みの二つ, .本館-引き出しの頼み { flex-shrink: 0; }
 .本館-引き出しの貯め { min-height: 52px; }
 .本館-引き出しの列 { min-height: 0; }
 @media (max-height: 399px) { .本館-引き出しの貯め { display: none; } }
