@@ -186,6 +186,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しのタブ .本館-印:empty { display: none; }
 .本館-引き出しのタブ[hidden], .本館-引き出し[hidden] { display: none; }
 .本館-引き出しのタブ[data-読む="1"] { will-change: transform; }
+:root { --本館-ランタンの溝: 40px; }
 .本館-引き出しのタブ[data-読む="1"]::before { content: ""; position: absolute; top: -4px; bottom: -4px; left: -14px; right: 0; }
 .本館-引き出し { position: absolute; top: 0; right: 0; bottom: var(--本館-kb); z-index: 5; width: var(--本館-引き出しの幅); display: flex; flex-direction: column; color: #5a4128; background: radial-gradient(ellipse at 50% 0%, #fff3d6 0%, #fffaf000 60%), #fffaf0f5; border-left: 2px solid #8a6a3c; box-shadow: -6px 0 18px #2e1a0b55, inset 6px 0 14px -10px #8a6a3c; transform: translateX(105%); transition: transform .22s ease; visibility: hidden; padding: 0 var(--本館-safe-r) 0 0;  box-sizing: border-box; font-family: "Kaisei Decol", "Yu Mincho", serif; }
 .本館-引き出し[data-開="1"] { transform: none; visibility: visible; }
