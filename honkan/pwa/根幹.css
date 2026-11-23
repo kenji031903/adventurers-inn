@@ -412,3 +412,10 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 :root[data-本館-Web窓] .本館-層[data-層="知らせ"] > .本館-席[data-席^="下"] { visibility: hidden; pointer-events: none; }
 :root[data-本館-Web窓] .本館-層[data-層="知らせ"] > .本館-塊の箱 { scale: .55; transform-origin: 0 100%; opacity: .92; }
 html[data-本館-小窓="1"] .本館-塊の箱[data-小窓で隠す] { visibility: hidden !important; pointer-events: none !important; }
+.本館-引き出しの欄 { max-height: min(calc(5.8em + 17px), 24vh); overflow-y: auto; }
+.本館-引き出しのまとめ, .本館-引き出しの荷, .本館-引き出しの下, .本館-引き出しの貯め頭 { flex-shrink: 0; }
+.本館-引き出しの貯め { min-height: 52px; }
+.本館-引き出しの列 { min-height: 0; }
+@media (max-height: 399px) { .本館-引き出しの貯め { display: none; } }
+.本館-引き出しの泡, .本館-引き出しのまとめ { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.本館-コピーの札 { position: fixed; z-index: 2147483647; padding: 8px 16px; border-radius: 14px; background: #2B1D14; color: #F6E7C1; border: 1.5px solid #8A6A3C; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.4); }

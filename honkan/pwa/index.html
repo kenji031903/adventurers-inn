@@ -21,11 +21,17 @@
   })();
 </script>
 <!-- 頼み484（2026-11-18）: 宿の字（Kaisei Decol）を読む。スマホには Yu Mincho が無いので、宿の見た目の字をここで配る。取るのは最初の1回だけ（番頭さん sw.js の 字の棚 にしまい、次からは手もとから） -->
-<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&display=swap">
+<!-- 頼み734: 字の取りに行きは、絵を止めない（先に宿を描き、字は取れしだい入れ替える。font-display:swap）。つなぎも先に温める -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&display=swap"></noscript>
 <link rel="stylesheet" href="根幹.css">
 </head>
 <body>
-<div id="本館"></div>
+<!-- 頼み734: 部品が全部そろうまでの「開けています」。根幹が開くとき #本館 の中身を空にするので、勝手に消える -->
+<div id="本館"><div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#120c07;color:#f3e2bd;font:16px/1.6 sans-serif;letter-spacing:.08em;opacity:.85">宿を開けています…</div></div>
 <script src="根幹.js"></script>
 <script src="帳面.js"></script>
 <script src="手もとの箱.js"></script>
