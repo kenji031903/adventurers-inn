@@ -229,6 +229,7 @@ html, body { margin: 0; height: 100%; background: var(--本館-床); color: var(
 .本館-引き出しの小ボタン[data-聞く] { background: #c0392b; border-color: #5e140c; box-shadow: 0 0 0 3px #ff8a7a99, 0 2px 0 #5e140c; } 
 .本館-引き出しの列 { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 12px 12px; display: flex; flex-direction: column; gap: 9px; }
 .本館-引き出しの列[hidden] { display: none; }
+.本館-引き出しの列 { will-change: scroll-position; } 
 .本館-引き出しの空 { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; white-space: pre-wrap; }
 .本館-引き出しの空:not(:nth-last-child(2)) { display: none; } 
 .本館-引き出しの何も { align-self: center; margin-top: 18px; text-align: center; font-size: 13px; color: #8a6a3c; opacity: .55; white-space: pre-wrap; } 
@@ -434,3 +435,4 @@ html[data-本館-小窓="1"] .本館-塊の箱[data-小窓で隠す] { visibilit
 @media (max-height: 399px) { .本館-引き出しの貯め { display: none; } }
 .本館-引き出しの泡, .本館-引き出しのまとめ { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .本館-コピーの札 { position: fixed; z-index: 2147483647; padding: 8px 16px; border-radius: 14px; background: #2B1D14; color: #F6E7C1; border: 1.5px solid #8A6A3C; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+.本館-引き出しの丸.本館部品-APIの丸[data-API="1"] { background: #c0392b; border-color: #5e140c; box-shadow: 0 0 0 3px #ff8a7a99, 0 2px 0 #5e140c; } 
