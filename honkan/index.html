@@ -72,7 +72,7 @@ function sendSafe() {
   }
   if (kb || vkH >= 100) n.b = AND ? (sabKeep != null ? sabKeep : lastSafe ? lastSafe.b : isFs() ? Math.min(64, navKeep(w) || 48) : 0) : 0; else sabKeep = n.b; // キーボードが出ているときは、ナビの帯はキーボードの下（本当の全画面では、ナビの帯がキーボードの下に透けて乗るので、その分だけ上に）
   lastSafe = n;
-  try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0 }, '*'); } catch (e) {}
+  try { innWin.postMessage({ inn: 'safe', t: n.t, r: n.r, b: n.b, l: n.l, mic: SR ? 1 : 0, rec: REC_OK() ? 1 : 0 }, '*'); } catch (e) {}
 }
 var ifr = document.querySelector('iframe'), fz = { w: window.innerWidth, h: window.innerHeight }, topFull = 0;
 var bz = { w: 0, h: 0, t: 0 }; var topKeep = ''; // v2.2: キーボードを出す前の宿の位置
@@ -155,7 +155,45 @@ function micRun(again) { // 頼み572（K80）: again = 区切りの開けなお
   };
   try { r.start(); } catch (e) { if (again) { micR = null; setTimeout(function () { if (micWant && !micR) { try { micRun(false); } catch (e2) { micWant = false; micTell({ ev: 'end' }); } } }, 150); return; } micWant = false; micTell({ ev: 'error', err: String(e) }); }
 }
+// 頼み843（K200）: 録音の中継。宿（Google の枠）はマイクの許可がもらえないので、外のこのページで録って、音（base64）を宿に返す。宿が GAS の 聞きとり（Groq）へ送って字にする
+function REC_OK() { return !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+var REC = { id: 0, st: null, mr: null, ch: [] };
+function recTell(o) { o.inn = 'mic'; try { if (innWin) innWin.postMessage(o, '*'); } catch (e) {} }
+function recFree() { var st = REC.st; REC.st = null; REC.mr = null; REC.ch = []; if (st) try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} }
+function recCmd(d) {
+  var c = d.cmd, id = d.id | 0;
+  if (c === 'rec-start') {
+    if (REC.mr) { try { REC.mr.onstop = null; if (REC.mr.state !== 'inactive') REC.mr.stop(); } catch (e) {} } recFree();
+    REC.id = id;
+    if (!REC_OK()) { recTell({ ev: 'rec-fail', id: id, err: 'unsupported' }); return; }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) {
+      if (REC.id !== id) { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} return; }
+      var L = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'], ty = '', mr;
+      for (var i = 0; i < L.length; i++) { try { if (MediaRecorder.isTypeSupported(L[i])) { ty = L[i]; break; } } catch (e) {} }
+      try { mr = ty ? new MediaRecorder(st, { mimeType: ty }) : new MediaRecorder(st); } catch (e) { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) {} recTell({ ev: 'rec-fail', id: id, err: 'MediaRecorder' }); return; }
+      REC.st = st; REC.mr = mr; REC.ch = [];
+      mr.ondataavailable = function (ev) { if (ev.data && ev.data.size && REC.mr === mr) REC.ch.push(ev.data); };
+      mr.onstop = function () {
+        var ch = REC.ch.slice(), mime = mr.mimeType || ty || 'audio/webm'; if (REC.mr === mr) recFree();
+        if (!ch.length) { recTell({ ev: 'rec-data', id: id, b64: '', mime: mime }); return; }
+        var fr = new FileReader();
+        fr.onload = function () { recTell({ ev: 'rec-data', id: id, b64: String(fr.result || '').split(',')[1] || '', mime: mime }); };
+        fr.onerror = function () { recTell({ ev: 'rec-data', id: id, b64: '', mime: mime }); };
+        fr.readAsDataURL(new Blob(ch, { type: mime }));
+      };
+      try { mr.start(); } catch (e) { recFree(); recTell({ ev: 'rec-fail', id: id, err: 'start' }); return; }
+      recTell({ ev: 'rec-ok', id: id });
+    }, function (e) { if (REC.id === id) recTell({ ev: 'rec-fail', id: id, err: (e && e.name) || 'err' }); });
+    return;
+  }
+  if (id !== REC.id) { if (c === 'rec-stop') recTell({ ev: 'rec-data', id: id, b64: '', mime: '' }); return; }
+  var mr2 = REC.mr;
+  if (c === 'rec-pause') { try { if (mr2 && mr2.state === 'recording') mr2.pause(); } catch (e) {} return; }
+  if (c === 'rec-resume') { try { if (mr2 && mr2.state === 'paused') mr2.resume(); } catch (e) {} return; }
+  if (c === 'rec-stop') { if (mr2 && mr2.state !== 'inactive') { try { mr2.stop(); } catch (e) { recFree(); recTell({ ev: 'rec-data', id: id, b64: '', mime: '' }); } } else { REC.id = 0; recTell({ ev: 'rec-data', id: id, b64: '', mime: '' }); } }
+}
 function micCmd(d) {
+  if (d.cmd && String(d.cmd).indexOf('rec-') === 0) { recCmd(d); return; }
   if (d.cmd === 'stop') { micWant = false; try { if (micR) micR.stop(); else micTell({ ev: 'end' }); } catch (e) {} return; }
   if (d.cmd !== 'start') return;
   if (!SR) { micTell({ ev: 'error', err: 'unsupported' }); return; }
