@@ -166,12 +166,12 @@ function recCmd(d) {
     if (REC.mr) { try { REC.mr.onstop = null; if (REC.mr.state !== 'inactive') REC.mr.stop(); } catch (e) {} } recFree();
     REC.id = id;
     if (!REC_OK()) { recTell({ ev: 'rec-fail', id: id, err: 'unsupported' }); return; }
-    // 頼み846: 小窓のハンズフリー等がマイクを持っている間は NotReadableError になる。放すまで少し待って、やり直す
+    // 頼み850: 間を細かくして、放された瞬間に近く録り始める（赤くなるまでの待ちを短く）／頼み846: 小窓のハンズフリー等がマイクを持っている間は NotReadableError になる。放すまで少し待って、やり直す
     var gum = function (n) {
       return navigator.mediaDevices.getUserMedia({ audio: true }).catch(function (e) {
         var nm = (e && e.name) || '';
-        if (REC.id !== id || n >= 3 || !(nm === 'NotReadableError' || nm === 'AbortError' || nm === 'TrackStartError')) throw e;
-        return new Promise(function (ok) { setTimeout(ok, [500, 1200, 2000][n]); }).then(function () { if (REC.id !== id) throw e; return gum(n + 1); });
+        if (REC.id !== id || n >= 4 || !(nm === 'NotReadableError' || nm === 'AbortError' || nm === 'TrackStartError')) throw e;
+        return new Promise(function (ok) { setTimeout(ok, [250, 500, 900, 1500][n]); }).then(function () { if (REC.id !== id) throw e; return gum(n + 1); });
       });
     };
     gum(0).then(function (st) {
