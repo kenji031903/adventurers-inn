@@ -166,7 +166,15 @@ function recCmd(d) {
     if (REC.mr) { try { REC.mr.onstop = null; if (REC.mr.state !== 'inactive') REC.mr.stop(); } catch (e) {} } recFree();
     REC.id = id;
     if (!REC_OK()) { recTell({ ev: 'rec-fail', id: id, err: 'unsupported' }); return; }
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) {
+    // 頼み846: 小窓のハンズフリー等がマイクを持っている間は NotReadableError になる。放すまで少し待って、やり直す
+    var gum = function (n) {
+      return navigator.mediaDevices.getUserMedia({ audio: true }).catch(function (e) {
+        var nm = (e && e.name) || '';
+        if (REC.id !== id || n >= 3 || !(nm === 'NotReadableError' || nm === 'AbortError' || nm === 'TrackStartError')) throw e;
+        return new Promise(function (ok) { setTimeout(ok, [500, 1200, 2000][n]); }).then(function () { if (REC.id !== id) throw e; return gum(n + 1); });
+      });
+    };
+    gum(0).then(function (st) {
       if (REC.id !== id) { try { st.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} return; }
       var L = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'], ty = '', mr;
       for (var i = 0; i < L.length; i++) { try { if (MediaRecorder.isTypeSupported(L[i])) { ty = L[i]; break; } } catch (e) {} }
