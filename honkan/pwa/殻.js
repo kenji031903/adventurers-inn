@@ -265,6 +265,8 @@
   function 写しで読む(塊, すること, データ) {
     var k = 写しの鍵(塊, すること, データ);
     var 取る = 橋.呼ぶ(塊, すること, データ, 60000).then(function (r) {
+      // 頼み861（K204）: 宿が「帳面が空・読めない」と空で返した分は、写しに上書きしない（前の質問が写しから消えて、出ては消える元になる）
+      if (r && Array.isArray(r.質問) && !r.質問.length && typeof r.帳面のわけ === 'string' && r.帳面のわけ) return r;
       箱P.then(function (箱) { return 箱.しまう('写し', k, { 時刻: Date.now(), 中身: r }); }).catch(function () { /* しまえなくても動く */ });
       return r;
     });
