@@ -467,3 +467,15 @@ html[data-本館-小窓="1"] .本館-塊の箱[data-小窓で隠す] { visibilit
   .本館-引き出しの下 .本館-引き出しの並び { margin-top: 0; flex: none; }
   .本館-引き出しの下 .本館-引き出しの並び > :not(.本館-引き出しの送る) { display: none; }
 }
+.本館-引き出しの頼みの帯 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex-shrink: 0; padding: 6px 10px; border: 1.5px solid #c8ab6c; border-radius: 12px; background: #fff7dd; color: #6e4a24; }
+.本館-引き出しの頼みの帯[data-中="1"] { border-color: #7a5230; background: #f3e4c0; position: sticky; top: 0; z-index: 2; }
+.本館-引き出しの頼みの帯[hidden] { display: none; }
+.本館-引き出しの頼みの帯の字 { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; }
+.本館-引き出しの頼みの帯の鈕 { flex: none; min-height: 44px; min-width: 44px; padding: 4px 10px; border: 1.5px solid #8a6a3c; border-radius: 12px; background: #fffdf6; color: #6e4a24; font: inherit; font-size: 13px; }
+.本館-引き出しの頼みの帯の鈕[hidden] { display: none; }
+.本館-引き出しの頼みの帯.本館-引き出しの頼みの帯の言 { display: block; border: 0; background: none; padding: 0 12px; font-size: 12px; line-height: 1.4; color: #8a6a3c; position: static; }
+.本館-引き出しの頼みの帯.本館-引き出しの頼みの帯の言[hidden] { display: none; }
+.本館-引き出しの頼みの全部 { flex: none; min-height: 44px; padding: 4px 10px; border: 1.5px solid #8a6a3c; border-radius: 12px; background: #fffdf6; color: #6e4a24; font: inherit; font-size: 13px; }
+.本館-引き出しの頼みの全部[hidden] { display: none; }
+.本館-引き出しの頼み { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.本館-引き出しの頼み[data-選び="1"] { border-color: #7a5230; background: #f6e9c6; }
